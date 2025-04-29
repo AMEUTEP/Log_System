@@ -37,6 +37,14 @@
     #protectedContent {
       display: none;
     }
+    #receiptToPrint {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      width: fit-content;
+      background-color: #f9f9f9;
+    }
   </style>
 </head>
 <body>
@@ -89,9 +97,11 @@
     <button type="submit">Submit</button>
   </form>
 
+  <button onclick="printReceipt()">Print Last Receipt</button>
+
   <div class="controls">
     <button onclick="downloadCSV()">Download CSV</button>
-    <button onclick="clearEntries()">Clear All Entries</button><br><br>
+    <button onclick="confirmAdminClear()">Clear All Entries</button><br><br>
     <label>Search Receipt # or Name: </label>
     <input type="text" id="filterInput" placeholder="Search receipt # or name..." onkeyup="filterEntries()">
     <br><br>
@@ -117,9 +127,13 @@
   </table>
 </div>
 
+<div id="receiptToPrint"></div>
+
 <script>
   const CORRECT_PASSCODE = "LevoskyUTEPA129!";
+  const ADMIN_PASSCODE = "LevoskyUTEPA129!";
   let inactivityTimer;
+  let lastEntry = null;
 
   function checkPasscode() {
     const input = document.getElementById('passcodeInput').value;
@@ -141,7 +155,7 @@
 
   function resetInactivityTimer() {
     clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(lockSystem, 20 * 60 * 1000); // 20 minutes
+    inactivityTimer = setTimeout(lockSystem, 20 * 60 * 1000);
   }
 
   function lockSystem() {
@@ -169,7 +183,7 @@
   form.addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const entry = {
+    lastEntry = {
       receiptNumber: document.getElementById('receiptNumber').value,
       pickupName: document.getElementById('pickupName').value,
       pickupDate: document.getElementById('pickupDate').value,
@@ -178,29 +192,59 @@
       enteredBy: document.getElementById('enteredBy')?.value || ''
     };
 
-    entries.push(entry);
+    entries.push(lastEntry);
     localStorage.setItem('pickupEntries', JSON.stringify(entries));
-    addRowToTable(entry, entries.length - 1);
+    addRowToTable(lastEntry, entries.length - 1);
     form.reset();
     ameSection.style.display = 'none';
   });
 
+  function printReceipt() {
+    if (!lastEntry) return alert("Submit a package first.");
+    const div = document.getElementById('receiptToPrint');
+    div.innerHTML = `
+      <h3>Package Pickup Receipt</h3>
+      <p><strong>Receipt #:</strong> ${lastEntry.receiptNumber}</p>
+      <p><strong>Name:</strong> ${lastEntry.pickupName}</p>
+      <p><strong>Date:</strong> ${lastEntry.pickupDate}</p>
+      <p><strong>SharePoint:</strong> ${lastEntry.sharepoint}</p>
+      <p><strong>MinerMall:</strong> ${lastEntry.minermall}</p>
+      <p><strong>Entered By:</strong> ${lastEntry.enteredBy}</p>
+    `;
+    const win = window.open('', '', 'width=400,height=600');
+    win.document.write('<html><head><title>Print Receipt</title></head><body>');
+    win.document.write(div.innerHTML);
+    win.document.write('</body></html>');
+    win.print();
+    win.close();
+  }
+
+  function confirmAdminClear() {
+    const pass = prompt("Enter admin passcode to clear all entries:");
+    if (pass === ADMIN_PASSCODE) {
+      if (confirm("Are you absolutely sure you want to delete ALL saved entries?")) {
+        localStorage.removeItem('pickupEntries');
+        entries = [];
+        refreshTable();
+      }
+    } else {
+      alert("Incorrect admin passcode.");
+    }
+  }
+
   function addRowToTable(entry, index) {
     const row = logTable.insertRow();
-
     const btnCell = row.insertCell();
     const highlightBtn = document.createElement('button');
     highlightBtn.textContent = 'Highlight';
     highlightBtn.onclick = () => row.classList.toggle('highlighted');
     btnCell.appendChild(highlightBtn);
-
     row.insertCell().innerText = entry.receiptNumber;
     row.insertCell().innerText = entry.pickupName;
     row.insertCell().innerText = entry.pickupDate;
     row.insertCell().innerText = entry.sharepoint;
     row.insertCell().innerText = entry.minermall;
     row.insertCell().innerText = entry.enteredBy;
-
     const editCell = row.insertCell();
     const editBtn = document.createElement('button');
     editBtn.textContent = 'Edit';
@@ -216,7 +260,6 @@
     document.getElementById('sharepoint').checked = entry.sharepoint === 'Yes';
     document.getElementById('minermall').checked = entry.minermall === 'Yes';
     document.getElementById('enteredBy').value = entry.enteredBy;
-
     entries.splice(index, 1);
     localStorage.setItem('pickupEntries', JSON.stringify(entries));
     refreshTable();
@@ -233,41 +276,20 @@
     Array.from(logTable.rows).forEach(row => {
       const receiptOrName = row.cells[1].innerText.toLowerCase() + " " + row.cells[2].innerText.toLowerCase();
       const date = row.cells[3].innerText;
-
       const matchesText = receiptOrName.includes(query);
       const matchesDate = selectedDate ? date === selectedDate : true;
-
       row.style.display = (matchesText && matchesDate) ? '' : 'none';
     });
   }
 
-  function clearEntries() {
-    if (confirm("Are you sure you want to delete all saved entries? This cannot be undone.")) {
-      localStorage.removeItem('pickupEntries');
-      entries = [];
-      refreshTable();
-    }
-  }
-
   function downloadCSV() {
-    const rows = [[
-      'Receipt #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By'
-    ]];
+    const rows = [[ 'Receipt #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By' ]];
     entries.forEach(entry => {
-      rows.push([
-        entry.receiptNumber,
-        entry.pickupName,
-        entry.pickupDate,
-        entry.sharepoint,
-        entry.minermall,
-        entry.enteredBy
-      ]);
+      rows.push([ entry.receiptNumber, entry.pickupName, entry.pickupDate, entry.sharepoint, entry.minermall, entry.enteredBy ]);
     });
-
     let csvContent = rows.map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", "package_log.csv");
