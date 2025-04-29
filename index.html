@@ -37,13 +37,9 @@
     #protectedContent {
       display: none;
     }
-    #receiptToPrint {
+    #poContainer {
       display: none;
-      margin-top: 20px;
-      padding: 20px;
-      border: 1px solid #ccc;
-      width: fit-content;
-      background-color: #f9f9f9;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -64,6 +60,13 @@
       <legend>Receipt Number</legend>
       <input type="text" id="receiptNumber" name="receiptNumber" required>
     </fieldset>
+
+    <div id="poContainer">
+      <fieldset>
+        <legend>PO Number</legend>
+        <input type="text" id="poNumber" name="poNumber">
+      </fieldset>
+    </div>
 
     <fieldset>
       <legend>Pickup Details</legend>
@@ -97,208 +100,47 @@
     <button type="submit">Submit</button>
   </form>
 
-  <button onclick="printReceipt()">Print Last Receipt</button>
+  <script>
+    const form = document.getElementById('pickupForm');
+    const ameSection = document.getElementById('ameSection');
+    const poContainer = document.getElementById('poContainer');
+    let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
 
-  <div class="controls">
-    <button onclick="downloadCSV()">Download CSV</button>
-    <button onclick="confirmAdminClear()">Clear All Entries</button><br><br>
-    <label>Search Receipt # or Name: </label>
-    <input type="text" id="filterInput" placeholder="Search receipt # or name..." onkeyup="filterEntries()">
-    <br><br>
-    <label>Filter by Date: </label>
-    <input type="date" id="filterDate" onchange="filterEntries()">
-  </div>
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
 
-  <h2>Saved Entries</h2>
-  <table id="logTable">
-    <thead>
-      <tr>
-        <th>Highlight</th>
-        <th>Receipt #</th>
-        <th>Picked Up By</th>
-        <th>Date</th>
-        <th>SharePoint</th>
-        <th>MinerMall</th>
-        <th>Entered By</th>
-        <th>Edit</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+      const receipt = document.getElementById('receiptNumber').value.trim();
+      const po = document.getElementById('poNumber').value.trim();
 
-<div id="receiptToPrint"></div>
+      const isDuplicate = entries.some(entry => entry.receiptNumber === receipt && entry.poNumber === '');
 
-<script>
-  const CORRECT_PASSCODE = "LevoskyUTEPA129!";
-  const ADMIN_PASSCODE = "LevoskyUTEPA129!";
-  let inactivityTimer;
-  let lastEntry = null;
-
-  function checkPasscode() {
-    const input = document.getElementById('passcodeInput').value;
-    if (input === CORRECT_PASSCODE) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('protectedContent').style.display = 'block';
-      resetInactivityTimer();
-    } else {
-      document.getElementById('loginError').textContent = 'Incorrect passcode. Try again.';
-    }
-  }
-
-  document.getElementById('passcodeInput').addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      checkPasscode();
-    }
-  });
-
-  function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(lockSystem, 20 * 60 * 1000);
-  }
-
-  function lockSystem() {
-    document.getElementById('protectedContent').style.display = 'none';
-    document.getElementById('loginScreen').style.display = 'block';
-    document.getElementById('passcodeInput').value = '';
-    document.getElementById('loginError').textContent = '';
-  }
-
-  document.addEventListener('mousemove', resetInactivityTimer);
-  document.addEventListener('keydown', resetInactivityTimer);
-
-  const form = document.getElementById('pickupForm');
-  const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
-  const ameSection = document.getElementById('ameSection');
-  let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
-  entries.forEach((entry, index) => addRowToTable(entry, index));
-
-  document.querySelectorAll('input[name="isAME"]').forEach(radio => {
-    radio.addEventListener('change', () => {
-      ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
-    });
-  });
-
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    lastEntry = {
-      receiptNumber: document.getElementById('receiptNumber').value,
-      pickupName: document.getElementById('pickupName').value,
-      pickupDate: document.getElementById('pickupDate').value,
-      sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
-      minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
-      enteredBy: document.getElementById('enteredBy')?.value || ''
-    };
-
-    entries.push(lastEntry);
-    localStorage.setItem('pickupEntries', JSON.stringify(entries));
-    addRowToTable(lastEntry, entries.length - 1);
-    form.reset();
-    ameSection.style.display = 'none';
-  });
-
-  function printReceipt() {
-    if (!lastEntry) return alert("Submit a package first.");
-    const div = document.getElementById('receiptToPrint');
-    div.innerHTML = `
-      <h3>Package Pickup Receipt</h3>
-      <p><strong>Receipt #:</strong> ${lastEntry.receiptNumber}</p>
-      <p><strong>Name:</strong> ${lastEntry.pickupName}</p>
-      <p><strong>Date:</strong> ${lastEntry.pickupDate}</p>
-      <p><strong>SharePoint:</strong> ${lastEntry.sharepoint}</p>
-      <p><strong>MinerMall:</strong> ${lastEntry.minermall}</p>
-      <p><strong>Entered By:</strong> ${lastEntry.enteredBy}</p>
-    `;
-    const win = window.open('', '', 'width=400,height=600');
-    win.document.write('<html><head><title>Print Receipt</title></head><body>');
-    win.document.write(div.innerHTML);
-    win.document.write('</body></html>');
-    win.print();
-    win.close();
-  }
-
-  function confirmAdminClear() {
-    const pass = prompt("Enter admin passcode to clear all entries:");
-    if (pass === ADMIN_PASSCODE) {
-      if (confirm("Are you absolutely sure you want to delete ALL saved entries?")) {
-        localStorage.removeItem('pickupEntries');
-        entries = [];
-        refreshTable();
+      if (isDuplicate && po === '') {
+        alert('Duplicate receipt found. Please enter a PO Number to continue.');
+        poContainer.style.display = 'block';
+        return;
       }
-    } else {
-      alert("Incorrect admin passcode.");
-    }
-  }
 
-  function addRowToTable(entry, index) {
-    const row = logTable.insertRow();
-    const btnCell = row.insertCell();
-    const highlightBtn = document.createElement('button');
-    highlightBtn.textContent = 'Highlight';
-    highlightBtn.onclick = () => row.classList.toggle('highlighted');
-    btnCell.appendChild(highlightBtn);
-    row.insertCell().innerText = entry.receiptNumber;
-    row.insertCell().innerText = entry.pickupName;
-    row.insertCell().innerText = entry.pickupDate;
-    row.insertCell().innerText = entry.sharepoint;
-    row.insertCell().innerText = entry.minermall;
-    row.insertCell().innerText = entry.enteredBy;
-    const editCell = row.insertCell();
-    const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
-    editBtn.onclick = () => editEntry(index);
-    editCell.appendChild(editBtn);
-  }
+      const entry = {
+        receiptNumber: receipt,
+        poNumber: po,
+        pickupName: document.getElementById('pickupName').value,
+        pickupDate: document.getElementById('pickupDate').value,
+        sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
+        minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
+        enteredBy: document.getElementById('enteredBy')?.value || ''
+      };
 
-  function editEntry(index) {
-    const entry = entries[index];
-    document.getElementById('receiptNumber').value = entry.receiptNumber;
-    document.getElementById('pickupName').value = entry.pickupName;
-    document.getElementById('pickupDate').value = entry.pickupDate;
-    document.getElementById('sharepoint').checked = entry.sharepoint === 'Yes';
-    document.getElementById('minermall').checked = entry.minermall === 'Yes';
-    document.getElementById('enteredBy').value = entry.enteredBy;
-    entries.splice(index, 1);
-    localStorage.setItem('pickupEntries', JSON.stringify(entries));
-    refreshTable();
-  }
-
-  function refreshTable() {
-    logTable.innerHTML = '';
-    entries.forEach((entry, index) => addRowToTable(entry, index));
-  }
-
-  function filterEntries() {
-    const query = document.getElementById('filterInput').value.toLowerCase();
-    const selectedDate = document.getElementById('filterDate').value;
-    Array.from(logTable.rows).forEach(row => {
-      const receiptOrName = row.cells[1].innerText.toLowerCase() + " " + row.cells[2].innerText.toLowerCase();
-      const date = row.cells[3].innerText;
-      const matchesText = receiptOrName.includes(query);
-      const matchesDate = selectedDate ? date === selectedDate : true;
-      row.style.display = (matchesText && matchesDate) ? '' : 'none';
+      entries.push(entry);
+      localStorage.setItem('pickupEntries', JSON.stringify(entries));
+      location.reload();
     });
-  }
 
-  function downloadCSV() {
-    const rows = [[ 'Receipt #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By' ]];
-    entries.forEach(entry => {
-      rows.push([ entry.receiptNumber, entry.pickupName, entry.pickupDate, entry.sharepoint, entry.minermall, entry.enteredBy ]);
+    document.querySelectorAll('input[name="isAME"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
+      });
     });
-    let csvContent = rows.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "package_log.csv");
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-</script>
+  </script>
 
 </body>
 </html>
