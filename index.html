@@ -1,112 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Package Pickup Log App</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        fieldset { margin-bottom: 20px; padding: 10px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f4f4f4; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Package Pickup Log App</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    fieldset { margin-bottom: 20px; padding: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    .highlighted { background-color: #ffff99; }
+  </style>
 </head>
 <body>
-    <h1>Package Pickup Log</h1>
+  <h1>Package Pickup Log</h1>
 
-    <form id="pickupForm">
-        <fieldset>
-            <legend>Pickup Details</legend>
-            <label for="pickupName">Name (Who Picked Up):</label><br>
-            <input type="text" id="pickupName" name="pickupName" required><br><br>
+  <form id="pickupForm">
+    <!-- Receipt Number -->
+    <fieldset>
+      <legend>Receipt Number</legend>
+      <input type="text" id="receiptNumber" name="receiptNumber" required>
+    </fieldset>
 
-            <label for="pickupDate">Date of Pickup:</label><br>
-            <input type="date" id="pickupDate" name="pickupDate" required>
-        </fieldset>
+    <!-- AME Department Question -->
+    <fieldset>
+      <legend>Is the Package from AME Dept?</legend>
+      <label><input type="radio" name="isAME" value="yes"> Yes</label>
+      <label><input type="radio" name="isAME" value="no"> No</label>
+    </fieldset>
 
-        <fieldset>
-            <legend>Data Entry Checklist</legend>
-            <input type="checkbox" id="sharepoint" name="sharepoint">
-            <label for="sharepoint">SharePoint</label><br>
+    <!-- Hidden Section: Data Entry Checklist -->
+    <div id="ameSection" style="display:none">
+      <fieldset>
+        <legend>Pickup Details</legend>
+        <label for="pickupName">Name (Who Picked Up):</label><br>
+        <input type="text" id="pickupName" name="pickupName" required><br><br>
 
-            <input type="checkbox" id="minermall" name="minermall">
-            <label for="minermall">MinerMall</label><br><br>
+        <label for="pickupDate">Date of Pickup:</label><br>
+        <input type="date" id="pickupDate" name="pickupDate" required>
+      </fieldset>
 
-            <label for="enteredBy">Entered By (Name):</label><br>
-            <input type="text" id="enteredBy" name="enteredBy" required>
-        </fieldset>
+      <fieldset>
+        <legend>Data Entry Checklist</legend>
+        <input type="checkbox" id="sharepoint" name="sharepoint">
+        <label for="sharepoint">SharePoint</label><br>
 
-        <button type="submit">Submit</button>
-    </form>
+        <input type="checkbox" id="minermall" name="minermall">
+        <label for="minermall">MinerMall</label><br><br>
 
-    <button onclick="downloadCSV()">Download CSV</button>
+        <label for="enteredBy">Entered By (Name):</label><br>
+        <input type="text" id="enteredBy" name="enteredBy" required>
+      </fieldset>
+    </div>
 
-    <h2>Saved Entries</h2>
-    <table id="logTable">
-        <thead>
-            <tr>
-                <th>Picked Up By</th>
-                <th>Date</th>
-                <th>SharePoint</th>
-                <th>MinerMall</th>
-                <th>Entered By</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <button type="submit">Submit</button>
+  </form>
 
-    <script>
-        const form = document.getElementById('pickupForm');
-        const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
+  <button onclick="downloadCSV()">Download CSV</button>
 
-        let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
-        entries.forEach(addRowToTable);
+  <h2>Saved Entries</h2>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Highlight</th>
+        <th>Receipt #</th>
+        <th>Picked Up By</th>
+        <th>Date</th>
+        <th>SharePoint</th>
+        <th>MinerMall</th>
+        <th>Entered By</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+  <script>
+    const form = document.getElementById('pickupForm');
+    const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
+    const ameSection = document.getElementById('ameSection');
+    let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
+    entries.forEach(addRowToTable);
 
-            const entry = {
-                pickupName: document.getElementById('pickupName').value,
-                pickupDate: document.getElementById('pickupDate').value,
-                sharepoint: document.getElementById('sharepoint').checked ? 'Yes' : 'No',
-                minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
-                enteredBy: document.getElementById('enteredBy').value
-            };
+    // Handle AME toggle
+    document.querySelectorAll('input[name="isAME"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
+      });
+    });
 
-            entries.push(entry);
-            localStorage.setItem('pickupEntries', JSON.stringify(entries));
-            addRowToTable(entry);
-            form.reset();
-        });
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
 
-        function addRowToTable(entry) {
-            const row = logTable.insertRow();
-            row.insertCell(0).innerText = entry.pickupName;
-            row.insertCell(1).innerText = entry.pickupDate;
-            row.insertCell(2).innerText = entry.sharepoint;
-            row.insertCell(3).innerText = entry.minermall;
-            row.insertCell(4).innerText = entry.enteredBy;
-        }
+      const entry = {
+        receiptNumber: document.getElementById('receiptNumber').value,
+        pickupName: document.getElementById('pickupName')?.value || '',
+        pickupDate: document.getElementById('pickupDate')?.value || '',
+        sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
+        minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
+        enteredBy: document.getElementById('enteredBy')?.value || ''
+      };
 
-        function downloadCSV() {
-            const rows = [['Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By']];
-            entries.forEach(entry => {
-                rows.push([entry.pickupName, entry.pickupDate, entry.sharepoint, entry.minermall, entry.enteredBy]);
-            });
+      entries.push(entry);
+      localStorage.setItem('pickupEntries', JSON.stringify(entries));
+      addRowToTable(entry);
+      form.reset();
+      ameSection.style.display = 'none';
+    });
 
-            let csvContent = rows.map(e => e.join(",")).join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+    function addRowToTable(entry) {
+      const row = logTable.insertRow();
+      const btnCell = row.insertCell();
+      const btn = document.createElement('button');
+      btn.textContent = 'Highlight';
+      btn.onclick = () => row.classList.toggle('highlighted');
+      btnCell.appendChild(btn);
 
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "package_log.csv");
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
+      row.insertCell().innerText = entry.receiptNumber;
+      row.insertCell().innerText = entry.pickupName;
+      row.insertCell().innerText = entry.pickupDate;
+      row.insertCell().innerText = entry.sharepoint;
+      row.insertCell().innerText = entry.minermall;
+      row.insertCell().innerText = entry.enteredBy;
+    }
+
+    function downloadCSV() {
+      const rows = [[
+        'Receipt #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By'
+      ]];
+      entries.forEach(entry => {
+        rows.push([
+          entry.receiptNumber,
+          entry.pickupName,
+          entry.pickupDate,
+          entry.sharepoint,
+          entry.minermall,
+          entry.enteredBy
+        ]);
+      });
+
+      let csvContent = rows.map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "package_log.csv");
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
 </body>
 </html>
