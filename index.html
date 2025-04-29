@@ -28,25 +28,11 @@
     th {
       background-color: #f4f4f4;
     }
-    .highlighted-light {
+    .highlighted {
       background-color: #ffff99;
-    }
-    .highlighted-dark {
-      background-color: #334466;
-      color: white;
-    }
-    .dark-mode {
-      background-color: #1e1e1e;
-      color: white;
-    }
-    .dark-mode table th {
-      background-color: #333;
     }
     .controls {
       margin-top: 10px;
-    }
-    .edit-input {
-      width: 95%;
     }
   </style>
 </head>
@@ -93,7 +79,6 @@
 
   <div class="controls">
     <button onclick="downloadCSV()">Download CSV</button>
-    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
     <button onclick="clearEntries()">Clear All Entries</button><br><br>
     <label>Search Receipt # or Name: </label>
     <input type="text" id="filterInput" placeholder="Search receipt # or name..." onkeyup="filterEntries()">
@@ -157,10 +142,7 @@
       const btnCell = row.insertCell();
       const highlightBtn = document.createElement('button');
       highlightBtn.textContent = 'Highlight';
-      highlightBtn.onclick = () => {
-        const isDark = document.body.classList.contains('dark-mode');
-        row.classList.toggle(isDark ? 'highlighted-dark' : 'highlighted-light');
-      };
+      highlightBtn.onclick = () => row.classList.toggle('highlighted');
       btnCell.appendChild(highlightBtn);
 
       row.insertCell().innerText = entry.receiptNumber;
@@ -208,10 +190,6 @@
 
         row.style.display = (matchesText && matchesDate) ? '' : 'none';
       });
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
     }
 
     function clearEntries() {
