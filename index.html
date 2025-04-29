@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Package Pickup Log App</title>
+  <title>Package Pickup Log App (Protected)</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -34,9 +34,21 @@
     .controls {
       margin-top: 10px;
     }
+    #protectedContent {
+      display: none;
+    }
   </style>
 </head>
 <body>
+
+<div id="loginScreen">
+  <h2>Enter Passcode to Access System</h2>
+  <input type="password" id="passcodeInput" placeholder="Passcode">
+  <button onclick="checkPasscode()">Submit</button>
+  <p id="loginError" style="color:red;"></p>
+</div>
+
+<div id="protectedContent">
   <h1>Package Pickup Log</h1>
 
   <form id="pickupForm">
@@ -103,130 +115,144 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
 
-  <script>
-    const form = document.getElementById('pickupForm');
-    const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
-    const ameSection = document.getElementById('ameSection');
-    let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
-    entries.forEach((entry, index) => addRowToTable(entry, index));
+<script>
+  const CORRECT_PASSCODE = "LevoskyUTEPA129!";
 
-    document.querySelectorAll('input[name="isAME"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
-      });
-    });
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const entry = {
-        receiptNumber: document.getElementById('receiptNumber').value,
-        pickupName: document.getElementById('pickupName').value,
-        pickupDate: document.getElementById('pickupDate').value,
-        sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
-        minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
-        enteredBy: document.getElementById('enteredBy')?.value || ''
-      };
-
-      entries.push(entry);
-      localStorage.setItem('pickupEntries', JSON.stringify(entries));
-      addRowToTable(entry, entries.length - 1);
-      form.reset();
-      ameSection.style.display = 'none';
-    });
-
-    function addRowToTable(entry, index) {
-      const row = logTable.insertRow();
-
-      const btnCell = row.insertCell();
-      const highlightBtn = document.createElement('button');
-      highlightBtn.textContent = 'Highlight';
-      highlightBtn.onclick = () => row.classList.toggle('highlighted');
-      btnCell.appendChild(highlightBtn);
-
-      row.insertCell().innerText = entry.receiptNumber;
-      row.insertCell().innerText = entry.pickupName;
-      row.insertCell().innerText = entry.pickupDate;
-      row.insertCell().innerText = entry.sharepoint;
-      row.insertCell().innerText = entry.minermall;
-      row.insertCell().innerText = entry.enteredBy;
-
-      const editCell = row.insertCell();
-      const editBtn = document.createElement('button');
-      editBtn.textContent = 'Edit';
-      editBtn.onclick = () => editEntry(index);
-      editCell.appendChild(editBtn);
+  function checkPasscode() {
+    const input = document.getElementById('passcodeInput').value;
+    if (input === CORRECT_PASSCODE) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('protectedContent').style.display = 'block';
+    } else {
+      document.getElementById('loginError').textContent = 'Incorrect passcode. Try again.';
     }
+  }
 
-    function editEntry(index) {
-      const entry = entries[index];
-      document.getElementById('receiptNumber').value = entry.receiptNumber;
-      document.getElementById('pickupName').value = entry.pickupName;
-      document.getElementById('pickupDate').value = entry.pickupDate;
-      document.getElementById('sharepoint').checked = entry.sharepoint === 'Yes';
-      document.getElementById('minermall').checked = entry.minermall === 'Yes';
-      document.getElementById('enteredBy').value = entry.enteredBy;
+  const form = document.getElementById('pickupForm');
+  const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
+  const ameSection = document.getElementById('ameSection');
+  let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
+  entries.forEach((entry, index) => addRowToTable(entry, index));
 
-      entries.splice(index, 1);
-      localStorage.setItem('pickupEntries', JSON.stringify(entries));
+  document.querySelectorAll('input[name="isAME"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
+    });
+  });
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const entry = {
+      receiptNumber: document.getElementById('receiptNumber').value,
+      pickupName: document.getElementById('pickupName').value,
+      pickupDate: document.getElementById('pickupDate').value,
+      sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
+      minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
+      enteredBy: document.getElementById('enteredBy')?.value || ''
+    };
+
+    entries.push(entry);
+    localStorage.setItem('pickupEntries', JSON.stringify(entries));
+    addRowToTable(entry, entries.length - 1);
+    form.reset();
+    ameSection.style.display = 'none';
+  });
+
+  function addRowToTable(entry, index) {
+    const row = logTable.insertRow();
+
+    const btnCell = row.insertCell();
+    const highlightBtn = document.createElement('button');
+    highlightBtn.textContent = 'Highlight';
+    highlightBtn.onclick = () => row.classList.toggle('highlighted');
+    btnCell.appendChild(highlightBtn);
+
+    row.insertCell().innerText = entry.receiptNumber;
+    row.insertCell().innerText = entry.pickupName;
+    row.insertCell().innerText = entry.pickupDate;
+    row.insertCell().innerText = entry.sharepoint;
+    row.insertCell().innerText = entry.minermall;
+    row.insertCell().innerText = entry.enteredBy;
+
+    const editCell = row.insertCell();
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => editEntry(index);
+    editCell.appendChild(editBtn);
+  }
+
+  function editEntry(index) {
+    const entry = entries[index];
+    document.getElementById('receiptNumber').value = entry.receiptNumber;
+    document.getElementById('pickupName').value = entry.pickupName;
+    document.getElementById('pickupDate').value = entry.pickupDate;
+    document.getElementById('sharepoint').checked = entry.sharepoint === 'Yes';
+    document.getElementById('minermall').checked = entry.minermall === 'Yes';
+    document.getElementById('enteredBy').value = entry.enteredBy;
+
+    entries.splice(index, 1);
+    localStorage.setItem('pickupEntries', JSON.stringify(entries));
+    refreshTable();
+  }
+
+  function refreshTable() {
+    logTable.innerHTML = '';
+    entries.forEach((entry, index) => addRowToTable(entry, index));
+  }
+
+  function filterEntries() {
+    const query = document.getElementById('filterInput').value.toLowerCase();
+    const selectedDate = document.getElementById('filterDate').value;
+    Array.from(logTable.rows).forEach(row => {
+      const receiptOrName = row.cells[1].innerText.toLowerCase() + " " + row.cells[2].innerText.toLowerCase();
+      const date = row.cells[3].innerText;
+
+      const matchesText = receiptOrName.includes(query);
+      const matchesDate = selectedDate ? date === selectedDate : true;
+
+      row.style.display = (matchesText && matchesDate) ? '' : 'none';
+    });
+  }
+
+  function clearEntries() {
+    if (confirm("Are you sure you want to delete all saved entries? This cannot be undone.")) {
+      localStorage.removeItem('pickupEntries');
+      entries = [];
       refreshTable();
     }
+  }
 
-    function refreshTable() {
-      logTable.innerHTML = '';
-      entries.forEach((entry, index) => addRowToTable(entry, index));
-    }
+  function downloadCSV() {
+    const rows = [[
+      'Receipt #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By'
+    ]];
+    entries.forEach(entry => {
+      rows.push([
+        entry.receiptNumber,
+        entry.pickupName,
+        entry.pickupDate,
+        entry.sharepoint,
+        entry.minermall,
+        entry.enteredBy
+      ]);
+    });
 
-    function filterEntries() {
-      const query = document.getElementById('filterInput').value.toLowerCase();
-      const selectedDate = document.getElementById('filterDate').value;
-      Array.from(logTable.rows).forEach(row => {
-        const receiptOrName = row.cells[1].innerText.toLowerCase() + " " + row.cells[2].innerText.toLowerCase();
-        const date = row.cells[3].innerText;
+    let csvContent = rows.map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
 
-        const matchesText = receiptOrName.includes(query);
-        const matchesDate = selectedDate ? date === selectedDate : true;
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "package_log.csv");
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+</script>
 
-        row.style.display = (matchesText && matchesDate) ? '' : 'none';
-      });
-    }
-
-    function clearEntries() {
-      if (confirm("Are you sure you want to delete all saved entries? This cannot be undone.")) {
-        localStorage.removeItem('pickupEntries');
-        entries = [];
-        refreshTable();
-      }
-    }
-
-    function downloadCSV() {
-      const rows = [[
-        'Receipt #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By'
-      ]];
-      entries.forEach(entry => {
-        rows.push([
-          entry.receiptNumber,
-          entry.pickupName,
-          entry.pickupDate,
-          entry.sharepoint,
-          entry.minermall,
-          entry.enteredBy
-        ]);
-      });
-
-      let csvContent = rows.map(e => e.join(",")).join("\n");
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "package_log.csv");
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-  </script>
 </body>
 </html>
