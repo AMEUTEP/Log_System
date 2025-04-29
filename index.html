@@ -28,8 +28,12 @@
     th {
       background-color: #f4f4f4;
     }
-    .highlighted {
+    .highlighted-light {
       background-color: #ffff99;
+    }
+    .highlighted-dark {
+      background-color: #334466;
+      color: white;
     }
     .dark-mode {
       background-color: #1e1e1e;
@@ -91,8 +95,11 @@
     <button onclick="downloadCSV()">Download CSV</button>
     <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
     <button onclick="clearEntries()">Clear All Entries</button><br><br>
-    <label>Filter: </label>
-    <input type="text" id="filterInput" placeholder="Search receipt #, name or date..." onkeyup="filterEntries()">
+    <label>Search Receipt # or Name: </label>
+    <input type="text" id="filterInput" placeholder="Search receipt # or name..." onkeyup="filterEntries()">
+    <br><br>
+    <label>Filter by Date: </label>
+    <input type="date" id="filterDate" onchange="filterEntries()">
   </div>
 
   <h2>Saved Entries</h2>
@@ -150,7 +157,10 @@
       const btnCell = row.insertCell();
       const highlightBtn = document.createElement('button');
       highlightBtn.textContent = 'Highlight';
-      highlightBtn.onclick = () => row.classList.toggle('highlighted');
+      highlightBtn.onclick = () => {
+        const isDark = document.body.classList.contains('dark-mode');
+        row.classList.toggle(isDark ? 'highlighted-dark' : 'highlighted-light');
+      };
       btnCell.appendChild(highlightBtn);
 
       row.insertCell().innerText = entry.receiptNumber;
@@ -188,9 +198,15 @@
 
     function filterEntries() {
       const query = document.getElementById('filterInput').value.toLowerCase();
+      const selectedDate = document.getElementById('filterDate').value;
       Array.from(logTable.rows).forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(query) ? '' : 'none';
+        const receiptOrName = row.cells[1].innerText.toLowerCase() + " " + row.cells[2].innerText.toLowerCase();
+        const date = row.cells[3].innerText;
+
+        const matchesText = receiptOrName.includes(query);
+        const matchesDate = selectedDate ? date === selectedDate : true;
+
+        row.style.display = (matchesText && matchesDate) ? '' : 'none';
       });
     }
 
