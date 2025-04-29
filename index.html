@@ -23,6 +23,16 @@
       <input type="text" id="receiptNumber" name="receiptNumber" required>
     </fieldset>
 
+    <!-- Pickup Details -->
+    <fieldset>
+      <legend>Pickup Details</legend>
+      <label for="pickupName">Name (Who Picked Up):</label><br>
+      <input type="text" id="pickupName" name="pickupName" required><br><br>
+
+      <label for="pickupDate">Date of Pickup:</label><br>
+      <input type="date" id="pickupDate" name="pickupDate" required>
+    </fieldset>
+
     <!-- AME Department Question -->
     <fieldset>
       <legend>Is the Package from AME Dept?</legend>
@@ -32,15 +42,6 @@
 
     <!-- Hidden Section: Data Entry Checklist -->
     <div id="ameSection" style="display:none">
-      <fieldset>
-        <legend>Pickup Details</legend>
-        <label for="pickupName">Name (Who Picked Up):</label><br>
-        <input type="text" id="pickupName" name="pickupName" required><br><br>
-
-        <label for="pickupDate">Date of Pickup:</label><br>
-        <input type="date" id="pickupDate" name="pickupDate" required>
-      </fieldset>
-
       <fieldset>
         <legend>Data Entry Checklist</legend>
         <input type="checkbox" id="sharepoint" name="sharepoint">
