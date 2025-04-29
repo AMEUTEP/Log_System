@@ -119,16 +119,40 @@
 
 <script>
   const CORRECT_PASSCODE = "LevoskyUTEPA129!";
+  let inactivityTimer;
 
   function checkPasscode() {
     const input = document.getElementById('passcodeInput').value;
     if (input === CORRECT_PASSCODE) {
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('protectedContent').style.display = 'block';
+      resetInactivityTimer();
     } else {
       document.getElementById('loginError').textContent = 'Incorrect passcode. Try again.';
     }
   }
+
+  document.getElementById('passcodeInput').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      checkPasscode();
+    }
+  });
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(lockSystem, 20 * 60 * 1000); // 20 minutes
+  }
+
+  function lockSystem() {
+    document.getElementById('protectedContent').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'block';
+    document.getElementById('passcodeInput').value = '';
+    document.getElementById('loginError').textContent = '';
+  }
+
+  document.addEventListener('mousemove', resetInactivityTimer);
+  document.addEventListener('keydown', resetInactivityTimer);
 
   const form = document.getElementById('pickupForm');
   const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
