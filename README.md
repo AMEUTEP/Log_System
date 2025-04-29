@@ -1,1 +1,113 @@
 # Log_System
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Package Pickup Log App</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        fieldset { margin-bottom: 20px; padding: 10px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h1>Package Pickup Log</h1>
+
+    <form id="pickupForm">
+        <fieldset>
+            <legend>Pickup Details</legend>
+            <label for="pickupName">Name (Who Picked Up):</label><br>
+            <input type="text" id="pickupName" name="pickupName" required><br><br>
+
+            <label for="pickupDate">Date of Pickup:</label><br>
+            <input type="date" id="pickupDate" name="pickupDate" required>
+        </fieldset>
+
+        <fieldset>
+            <legend>Data Entry Checklist</legend>
+            <input type="checkbox" id="sharepoint" name="sharepoint">
+            <label for="sharepoint">SharePoint</label><br>
+
+            <input type="checkbox" id="minermall" name="minermall">
+            <label for="minermall">MinerMall</label><br><br>
+
+            <label for="enteredBy">Entered By (Name):</label><br>
+            <input type="text" id="enteredBy" name="enteredBy" required>
+        </fieldset>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <button onclick="downloadCSV()">Download CSV</button>
+
+    <h2>Saved Entries</h2>
+    <table id="logTable">
+        <thead>
+            <tr>
+                <th>Picked Up By</th>
+                <th>Date</th>
+                <th>SharePoint</th>
+                <th>MinerMall</th>
+                <th>Entered By</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const form = document.getElementById('pickupForm');
+        const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
+
+        let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
+        entries.forEach(addRowToTable);
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const entry = {
+                pickupName: document.getElementById('pickupName').value,
+                pickupDate: document.getElementById('pickupDate').value,
+                sharepoint: document.getElementById('sharepoint').checked ? 'Yes' : 'No',
+                minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
+                enteredBy: document.getElementById('enteredBy').value
+            };
+
+            entries.push(entry);
+            localStorage.setItem('pickupEntries', JSON.stringify(entries));
+            addRowToTable(entry);
+            form.reset();
+        });
+
+        function addRowToTable(entry) {
+            const row = logTable.insertRow();
+            row.insertCell(0).innerText = entry.pickupName;
+            row.insertCell(1).innerText = entry.pickupDate;
+            row.insertCell(2).innerText = entry.sharepoint;
+            row.insertCell(3).innerText = entry.minermall;
+            row.insertCell(4).innerText = entry.enteredBy;
+        }
+
+        function downloadCSV() {
+            const rows = [['Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By']];
+            entries.forEach(entry => {
+                rows.push([entry.pickupName, entry.pickupDate, entry.sharepoint, entry.minermall, entry.enteredBy]);
+            });
+
+            let csvContent = rows.map(e => e.join(",")).join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "package_log.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
