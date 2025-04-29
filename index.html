@@ -5,25 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Package Pickup Log App</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    fieldset { margin-bottom: 20px; padding: 10px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
-    .highlighted { background-color: #ffff99; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: white;
+      color: black;
+    }
+    fieldset {
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    .highlighted {
+      background-color: #ffff99;
+    }
+    .dark-mode {
+      background-color: #1e1e1e;
+      color: white;
+    }
+    .dark-mode table th {
+      background-color: #333;
+    }
+    .controls {
+      margin-top: 10px;
+    }
+    .edit-input {
+      width: 95%;
+    }
   </style>
 </head>
 <body>
   <h1>Package Pickup Log</h1>
 
   <form id="pickupForm">
-    <!-- Receipt Number -->
     <fieldset>
       <legend>Receipt Number</legend>
       <input type="text" id="receiptNumber" name="receiptNumber" required>
     </fieldset>
 
-    <!-- Pickup Details -->
     <fieldset>
       <legend>Pickup Details</legend>
       <label for="pickupName">Name (Who Picked Up):</label><br>
@@ -33,14 +64,12 @@
       <input type="date" id="pickupDate" name="pickupDate" required>
     </fieldset>
 
-    <!-- AME Department Question -->
     <fieldset>
       <legend>Is the Package from AME Dept?</legend>
       <label><input type="radio" name="isAME" value="yes"> Yes</label>
       <label><input type="radio" name="isAME" value="no"> No</label>
     </fieldset>
 
-    <!-- Hidden Section: Data Entry Checklist -->
     <div id="ameSection" style="display:none">
       <fieldset>
         <legend>Data Entry Checklist</legend>
@@ -58,7 +87,13 @@
     <button type="submit">Submit</button>
   </form>
 
-  <button onclick="downloadCSV()">Download CSV</button>
+  <div class="controls">
+    <button onclick="downloadCSV()">Download CSV</button>
+    <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <button onclick="clearEntries()">Clear All Entries</button><br><br>
+    <label>Filter: </label>
+    <input type="text" id="filterInput" placeholder="Search receipt #, name or date..." onkeyup="filterEntries()">
+  </div>
 
   <h2>Saved Entries</h2>
   <table id="logTable">
@@ -71,6 +106,7 @@
         <th>SharePoint</th>
         <th>MinerMall</th>
         <th>Entered By</th>
+        <th>Edit</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -81,9 +117,8 @@
     const logTable = document.getElementById('logTable').getElementsByTagName('tbody')[0];
     const ameSection = document.getElementById('ameSection');
     let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
-    entries.forEach(addRowToTable);
+    entries.forEach((entry, index) => addRowToTable(entry, index));
 
-    // Handle AME toggle
     document.querySelectorAll('input[name="isAME"]').forEach(radio => {
       radio.addEventListener('change', () => {
         ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
@@ -95,8 +130,8 @@
 
       const entry = {
         receiptNumber: document.getElementById('receiptNumber').value,
-        pickupName: document.getElementById('pickupName')?.value || '',
-        pickupDate: document.getElementById('pickupDate')?.value || '',
+        pickupName: document.getElementById('pickupName').value,
+        pickupDate: document.getElementById('pickupDate').value,
         sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
         minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
         enteredBy: document.getElementById('enteredBy')?.value || ''
@@ -104,18 +139,19 @@
 
       entries.push(entry);
       localStorage.setItem('pickupEntries', JSON.stringify(entries));
-      addRowToTable(entry);
+      addRowToTable(entry, entries.length - 1);
       form.reset();
       ameSection.style.display = 'none';
     });
 
-    function addRowToTable(entry) {
+    function addRowToTable(entry, index) {
       const row = logTable.insertRow();
+
       const btnCell = row.insertCell();
-      const btn = document.createElement('button');
-      btn.textContent = 'Highlight';
-      btn.onclick = () => row.classList.toggle('highlighted');
-      btnCell.appendChild(btn);
+      const highlightBtn = document.createElement('button');
+      highlightBtn.textContent = 'Highlight';
+      highlightBtn.onclick = () => row.classList.toggle('highlighted');
+      btnCell.appendChild(highlightBtn);
 
       row.insertCell().innerText = entry.receiptNumber;
       row.insertCell().innerText = entry.pickupName;
@@ -123,6 +159,51 @@
       row.insertCell().innerText = entry.sharepoint;
       row.insertCell().innerText = entry.minermall;
       row.insertCell().innerText = entry.enteredBy;
+
+      const editCell = row.insertCell();
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => editEntry(index);
+      editCell.appendChild(editBtn);
+    }
+
+    function editEntry(index) {
+      const entry = entries[index];
+      document.getElementById('receiptNumber').value = entry.receiptNumber;
+      document.getElementById('pickupName').value = entry.pickupName;
+      document.getElementById('pickupDate').value = entry.pickupDate;
+      document.getElementById('sharepoint').checked = entry.sharepoint === 'Yes';
+      document.getElementById('minermall').checked = entry.minermall === 'Yes';
+      document.getElementById('enteredBy').value = entry.enteredBy;
+
+      entries.splice(index, 1);
+      localStorage.setItem('pickupEntries', JSON.stringify(entries));
+      refreshTable();
+    }
+
+    function refreshTable() {
+      logTable.innerHTML = '';
+      entries.forEach((entry, index) => addRowToTable(entry, index));
+    }
+
+    function filterEntries() {
+      const query = document.getElementById('filterInput').value.toLowerCase();
+      Array.from(logTable.rows).forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+      });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    function clearEntries() {
+      if (confirm("Are you sure you want to delete all saved entries? This cannot be undone.")) {
+        localStorage.removeItem('pickupEntries');
+        entries = [];
+        refreshTable();
+      }
     }
 
     function downloadCSV() {
