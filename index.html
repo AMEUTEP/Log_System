@@ -5,42 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Package Pickup Log App (Protected)</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: white;
-      color: black;
-    }
-    fieldset {
-      margin-bottom: 20px;
-      padding: 10px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    .highlighted {
-      background-color: #ffff99;
-    }
-    .controls {
-      margin-top: 10px;
-    }
-    #protectedContent {
-      display: none;
-    }
-    #poContainer {
-      display: none;
-      margin-top: 10px;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: white; color: black; }
+    fieldset { margin-bottom: 20px; padding: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    .highlighted { background-color: #ffff99; }
+    .controls { margin-top: 10px; }
+    #protectedContent { display: none; }
+    #receiptToPrint { display: none; margin-top: 20px; padding: 20px; border: 1px solid #ccc; width: fit-content; background-color: #f9f9f9; }
+    #poContainer { display: none; }
   </style>
 </head>
 <body>
@@ -58,23 +32,22 @@
   <form id="pickupForm">
     <fieldset>
       <legend>Receipt Number</legend>
-      <input type="text" id="receiptNumber" name="receiptNumber" required>
+      <input type="text" id="receiptNumber" required>
     </fieldset>
 
     <div id="poContainer">
       <fieldset>
-        <legend>PO Number</legend>
-        <input type="text" id="poNumber" name="poNumber">
+        <legend>PO Number (Required if duplicate)</legend>
+        <input type="text" id="poNumber">
       </fieldset>
     </div>
 
     <fieldset>
       <legend>Pickup Details</legend>
       <label for="pickupName">Name (Who Picked Up):</label><br>
-      <input type="text" id="pickupName" name="pickupName" required><br><br>
-
+      <input type="text" id="pickupName" required><br><br>
       <label for="pickupDate">Date of Pickup:</label><br>
-      <input type="date" id="pickupDate" name="pickupDate" required>
+      <input type="date" id="pickupDate" required>
     </fieldset>
 
     <fieldset>
@@ -86,61 +59,214 @@
     <div id="ameSection" style="display:none">
       <fieldset>
         <legend>Data Entry Checklist</legend>
-        <input type="checkbox" id="sharepoint" name="sharepoint">
+        <input type="checkbox" id="sharepoint">
         <label for="sharepoint">SharePoint</label><br>
-
-        <input type="checkbox" id="minermall" name="minermall">
+        <input type="checkbox" id="minermall">
         <label for="minermall">MinerMall</label><br><br>
-
         <label for="enteredBy">Entered By (Name):</label><br>
-        <input type="text" id="enteredBy" name="enteredBy" required>
+        <input type="text" id="enteredBy" required>
       </fieldset>
     </div>
 
     <button type="submit">Submit</button>
   </form>
 
-  <script>
-    const form = document.getElementById('pickupForm');
-    const ameSection = document.getElementById('ameSection');
-    const poContainer = document.getElementById('poContainer');
-    let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
+  <button onclick="printReceipt()">Print Last Receipt</button>
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
+  <div class="controls">
+    <button onclick="downloadCSV()">Download CSV</button>
+    <button onclick="confirmAdminClear()">Clear All Entries</button><br><br>
+    <label>Search Receipt # or Name: </label>
+    <input type="text" id="filterInput" onkeyup="filterEntries()">
+    <br><br>
+    <label>Filter by Date: </label>
+    <input type="date" id="filterDate" onchange="filterEntries()">
+  </div>
 
-      const receipt = document.getElementById('receiptNumber').value.trim();
-      const po = document.getElementById('poNumber').value.trim();
+  <h2>Saved Entries</h2>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Highlight</th>
+        <th>Receipt #</th>
+        <th>PO #</th>
+        <th>Picked Up By</th>
+        <th>Date</th>
+        <th>SharePoint</th>
+        <th>MinerMall</th>
+        <th>Entered By</th>
+        <th>Edit</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
-      const isDuplicate = entries.some(entry => entry.receiptNumber === receipt && entry.poNumber === '');
+<div id="receiptToPrint"></div>
 
-      if (isDuplicate && po === '') {
-        alert('Duplicate receipt found. Please enter a PO Number to continue.');
-        poContainer.style.display = 'block';
-        return;
+<script>
+  const PASSCODE = "LevoskyUTEPA129!";
+  let inactivityTimer;
+  let entries = JSON.parse(localStorage.getItem('pickupEntries')) || [];
+  let lastEntry = null;
+
+  function checkPasscode() {
+    const input = document.getElementById('passcodeInput').value;
+    if (input === PASSCODE) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('protectedContent').style.display = 'block';
+      resetInactivityTimer();
+      refreshTable();
+    } else {
+      document.getElementById('loginError').textContent = 'Incorrect passcode. Try again.';
+    }
+  }
+
+  document.getElementById('passcodeInput').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      checkPasscode();
+    }
+  });
+
+  function resetInactivityTimer() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(() => location.reload(), 20 * 60 * 1000);
+  }
+
+  document.addEventListener('mousemove', resetInactivityTimer);
+  document.addEventListener('keydown', resetInactivityTimer);
+
+  document.querySelectorAll('input[name="isAME"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('ameSection').style.display = (r.value === 'yes') ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('pickupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const receipt = document.getElementById('receiptNumber').value.trim();
+    const po = document.getElementById('poNumber').value.trim();
+    const isDup = entries.some(e => e.receiptNumber === receipt && e.poNumber === '');
+    if (isDup && po === '') {
+      alert("Duplicate Receipt # found. Please enter PO Number.");
+      document.getElementById('poContainer').style.display = 'block';
+      return;
+    }
+
+    lastEntry = {
+      receiptNumber: receipt,
+      poNumber: po,
+      pickupName: document.getElementById('pickupName').value,
+      pickupDate: document.getElementById('pickupDate').value,
+      sharepoint: document.getElementById('sharepoint').checked ? 'Yes' : 'No',
+      minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
+      enteredBy: document.getElementById('enteredBy').value
+    };
+    entries.push(lastEntry);
+    localStorage.setItem('pickupEntries', JSON.stringify(entries));
+    refreshTable();
+    document.getElementById('pickupForm').reset();
+    document.getElementById('ameSection').style.display = 'none';
+    document.getElementById('poContainer').style.display = 'none';
+  });
+
+  function refreshTable() {
+    const tbody = document.querySelector('#logTable tbody');
+    tbody.innerHTML = '';
+    entries.forEach((entry, i) => {
+      const row = tbody.insertRow();
+      const btnCell = row.insertCell();
+      const btn = document.createElement('button');
+      btn.textContent = 'Highlight';
+      btn.onclick = () => row.classList.toggle('highlighted');
+      btnCell.appendChild(btn);
+      row.insertCell().innerText = entry.receiptNumber;
+      row.insertCell().innerText = entry.poNumber || '-';
+      row.insertCell().innerText = entry.pickupName;
+      row.insertCell().innerText = entry.pickupDate;
+      row.insertCell().innerText = entry.sharepoint;
+      row.insertCell().innerText = entry.minermall;
+      row.insertCell().innerText = entry.enteredBy;
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => editEntry(i);
+      row.insertCell().appendChild(editBtn);
+    });
+  }
+
+  function editEntry(i) {
+    const e = entries[i];
+    document.getElementById('receiptNumber').value = e.receiptNumber;
+    document.getElementById('poNumber').value = e.poNumber;
+    document.getElementById('pickupName').value = e.pickupName;
+    document.getElementById('pickupDate').value = e.pickupDate;
+    document.getElementById('sharepoint').checked = e.sharepoint === 'Yes';
+    document.getElementById('minermall').checked = e.minermall === 'Yes';
+    document.getElementById('enteredBy').value = e.enteredBy;
+    entries.splice(i, 1);
+    localStorage.setItem('pickupEntries', JSON.stringify(entries));
+    refreshTable();
+  }
+
+  function confirmAdminClear() {
+    const pass = prompt("Enter admin passcode to clear all entries:");
+    if (pass === PASSCODE) {
+      if (confirm("Are you sure you want to delete ALL entries?")) {
+        localStorage.removeItem('pickupEntries');
+        entries = [];
+        refreshTable();
       }
+    } else {
+      alert("Incorrect admin passcode.");
+    }
+  }
 
-      const entry = {
-        receiptNumber: receipt,
-        poNumber: po,
-        pickupName: document.getElementById('pickupName').value,
-        pickupDate: document.getElementById('pickupDate').value,
-        sharepoint: document.getElementById('sharepoint')?.checked ? 'Yes' : 'No',
-        minermall: document.getElementById('minermall')?.checked ? 'Yes' : 'No',
-        enteredBy: document.getElementById('enteredBy')?.value || ''
-      };
+  function printReceipt() {
+    if (!lastEntry) return alert("Submit a package first.");
+    const div = document.getElementById('receiptToPrint');
+    div.innerHTML = `
+      <h3>Package Pickup Receipt</h3>
+      <p><strong>Receipt #:</strong> ${lastEntry.receiptNumber}</p>
+      <p><strong>PO #:</strong> ${lastEntry.poNumber || '-'}</p>
+      <p><strong>Name:</strong> ${lastEntry.pickupName}</p>
+      <p><strong>Date:</strong> ${lastEntry.pickupDate}</p>
+      <p><strong>SharePoint:</strong> ${lastEntry.sharepoint}</p>
+      <p><strong>MinerMall:</strong> ${lastEntry.minermall}</p>
+      <p><strong>Entered By:</strong> ${lastEntry.enteredBy}</p>
+    `;
+    const win = window.open('', '', 'width=400,height=600');
+    win.document.write('<html><head><title>Print Receipt</title></head><body>');
+    win.document.write(div.innerHTML);
+    win.document.write('</body></html>');
+    win.print();
+    win.close();
+  }
 
-      entries.push(entry);
-      localStorage.setItem('pickupEntries', JSON.stringify(entries));
-      location.reload();
+  function downloadCSV() {
+    const rows = [['Receipt #', 'PO #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By']];
+    entries.forEach(e => rows.push([e.receiptNumber, e.poNumber || '-', e.pickupName, e.pickupDate, e.sharepoint, e.minermall, e.enteredBy]));
+    const blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'package_log.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function filterEntries() {
+    const text = document.getElementById('filterInput').value.toLowerCase();
+    const date = document.getElementById('filterDate').value;
+    Array.from(document.querySelectorAll('#logTable tbody tr')).forEach(row => {
+      const cells = row.querySelectorAll('td');
+      const matchesText = cells[1].innerText.toLowerCase().includes(text) || cells[3].innerText.toLowerCase().includes(text);
+      const matchesDate = date ? cells[4].innerText === date : true;
+      row.style.display = matchesText && matchesDate ? '' : 'none';
     });
-
-    document.querySelectorAll('input[name="isAME"]').forEach(radio => {
-      radio.addEventListener('change', () => {
-        ameSection.style.display = (radio.value === 'yes') ? 'block' : 'none';
-      });
-    });
-  </script>
+  }
+</script>
 
 </body>
 </html>
