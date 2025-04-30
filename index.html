@@ -12,31 +12,6 @@
     th { background-color: #f4f4f4; }
   </style>
 </head>
-  <script>
-  function checkPasscode() {
-    const input = document.getElementById('passcodeInput').value;
-    if (input === "LevoskyUTEPA129!") {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      document.getElementById('ameQuestion').style.display = 'block';
-      loadEntries();
-    } else {
-      document.getElementById('loginError').innerText = "Incorrect passcode.";
-    }
-  }
-
-  function toggleChecklist(show) {
-    document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
-  }
-
-  window.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
-      e.preventDefault();
-      checkPasscode();
-    }
-  });
-</script>
-
 <body>
 
 <div id="loginScreen">
@@ -107,8 +82,7 @@
     <tbody></tbody>
   </table>
 </div>
-
-<!-- Firebase SDK & App Logic -->
+<!-- Firebase SDK + App Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -126,9 +100,13 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const form = document.getElementById('pickupForm');
-  const tableBody = document.querySelector('#logTable tbody');
+  const form = document.getElementById("pickupForm");
+  const tableBody = document.querySelector("#logTable tbody");
   let savedReceipts = [];
+
+  function toggleChecklist(show) {
+    document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
+  }
 
   function checkPasscode() {
     const input = document.getElementById('passcodeInput').value;
@@ -142,7 +120,6 @@
     }
   }
 
-  // ✅ Allow Enter key to also submit passcode
   window.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
       e.preventDefault();
@@ -150,11 +127,23 @@
     }
   });
 
-  function toggleChecklist(show) {
-    document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
+  async function loadEntries() {
+    tableBody.innerHTML = "";
+    savedReceipts = [];
+    const snapshot = await getDocs(collection(db, "entries"));
+    snapshot.forEach(doc => {
+      const entry = doc.data();
+      savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
+      const row = tableBody.insertRow();
+      row.insertCell(0).innerText = entry.pickupName || '';
+      row.insertCell(1).innerText = entry.pickupDate || '';
+      row.insertCell(2).innerText = entry.sharepoint || '';
+      row.insertCell(3).innerText = entry.minermall || '';
+      row.insertCell(4).innerText = entry.enteredBy || '';
+    });
   }
 
-  form.addEventListener('submit', async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const receipt = document.getElementById('receiptNumber').value;
     const po = document.getElementById('poNumber').value;
@@ -184,22 +173,6 @@
     document.getElementById('poSection').style.display = 'none';
     loadEntries();
   });
-
-  async function loadEntries() {
-    tableBody.innerHTML = "";
-    savedReceipts = [];
-    const querySnapshot = await getDocs(collection(db, "entries"));
-    querySnapshot.forEach((doc) => {
-      const entry = doc.data();
-      savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
-      const row = tableBody.insertRow();
-      row.insertCell(0).innerText = entry.pickupName || '';
-      row.insertCell(1).innerText = entry.pickupDate || '';
-      row.insertCell(2).innerText = entry.sharepoint || '';
-      row.insertCell(3).innerText = entry.minermall || '';
-      row.insertCell(4).innerText = entry.enteredBy || '';
-    });
-  }
 </script>
 </body>
 </html>
