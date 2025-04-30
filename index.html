@@ -5,14 +5,23 @@
   <title>Package Pickup Log</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
+    #app, #poSection, #dataChecklist, #ameQuestion { display: none; }
     fieldset { margin-bottom: 20px; padding: 10px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f4f4f4; }
-    .highlight { background-color: #ffff99; }
   </style>
 </head>
 <body>
+
+<div id="loginScreen">
+  <h2>Enter Passcode to Access Log System</h2>
+  <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+  <button onclick="checkPasscode()">Submit</button>
+  <p id="loginError" style="color: red;"></p>
+</div>
+
+<div id="app">
   <h1>Package Pickup Log</h1>
 
   <form id="pickupForm">
@@ -31,7 +40,14 @@
       <input type="date" id="pickupDate" name="pickupDate" required>
     </fieldset>
 
-    <fieldset>
+    <fieldset id="ameQuestion">
+      <legend>Department</legend>
+      <label>Is the Package from AME Dept?</label><br>
+      <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
+      <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
+    </fieldset>
+
+    <fieldset id="dataChecklist">
       <legend>Data Entry Checklist</legend>
       <input type="checkbox" id="sharepoint" name="sharepoint">
       <label for="sharepoint">SharePoint</label><br>
@@ -41,6 +57,12 @@
 
       <label for="enteredBy">Entered By (Name):</label><br>
       <input type="text" id="enteredBy" name="enteredBy" required>
+    </fieldset>
+
+    <fieldset id="poSection">
+      <legend>PO Number (Required for duplicates)</legend>
+      <label for="poNumber">PO Number:</label><br>
+      <input type="text" id="poNumber" name="poNumber"><br><br>
     </fieldset>
 
     <button type="submit">Submit</button>
@@ -59,64 +81,92 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
 
-  <!-- Firebase SDK & App Logic -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<!-- Firebase SDK & App Logic -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
-      authDomain: "packagelog-8a672.firebaseapp.com",
-      projectId: "packagelog-8a672",
-      storageBucket: "packagelog-8a672.firebasestorage.app",
-      messagingSenderId: "424373386333",
-      appId: "1:424373386333:web:9827c71cafb9829d0fa1b4",
-      measurementId: "G-12P37M2SKV"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
+    authDomain: "packagelog-8a672.firebaseapp.com",
+    projectId: "packagelog-8a672",
+    storageBucket: "packagelog-8a672.firebasestorage.app",
+    messagingSenderId: "424373386333",
+    appId: "1:424373386333:web:9827c71cafb9829d0fa1b4",
+    measurementId: "G-12P37M2SKV"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const form = document.getElementById('pickupForm');
-    const tableBody = document.querySelector('#logTable tbody');
+  const form = document.getElementById('pickupForm');
+  const tableBody = document.querySelector('#logTable tbody');
+  let savedReceipts = [];
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const entry = {
-        receiptNumber: document.getElementById('receiptNumber').value,
-        pickupName: document.getElementById('pickupName').value,
-        pickupDate: document.getElementById('pickupDate').value,
-        sharepoint: document.getElementById('sharepoint').checked ? 'Yes' : 'No',
-        minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
-        enteredBy: document.getElementById('enteredBy').value
-      };
+  function checkPasscode() {
+    const input = document.getElementById('passcodeInput').value;
+    if (input === "LevoskyUTEPA129!") {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('ameQuestion').style.display = 'block';
+      loadEntries();
+    } else {
+      document.getElementById('loginError').innerText = "Incorrect passcode.";
+    }
+  }
 
-      try {
-        await addDoc(collection(db, "entries"), entry);
-        alert("Entry saved to Firebase!");
-        form.reset();
-        loadEntries();  // Refresh table
-      } catch (error) {
-        console.error("Error saving entry:", error);
+  function toggleChecklist(show) {
+    document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const receipt = document.getElementById('receiptNumber').value;
+    const po = document.getElementById('poNumber').value;
+    const combinedKey = receipt + po;
+
+    if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
+      if (!po) {
+        document.getElementById('poSection').style.display = 'block';
+        alert("Duplicate Receipt Number detected. Please enter PO Number.");
+        return;
       }
-    });
-
-    async function loadEntries() {
-      tableBody.innerHTML = "";
-      const querySnapshot = await getDocs(collection(db, "entries"));
-      querySnapshot.forEach((doc) => {
-        const entry = doc.data();
-        const row = tableBody.insertRow();
-        row.insertCell(0).innerText = entry.pickupName || '';
-        row.insertCell(1).innerText = entry.pickupDate || '';
-        row.insertCell(2).innerText = entry.sharepoint || '';
-        row.insertCell(3).innerText = entry.minermall || '';
-        row.insertCell(4).innerText = entry.enteredBy || '';
-      });
     }
 
-    loadEntries(); // Load on page load
-  </script>
+    const entry = {
+      receiptNumber: receipt,
+      poNumber: po,
+      pickupName: document.getElementById('pickupName').value,
+      pickupDate: document.getElementById('pickupDate').value,
+      sharepoint: document.getElementById('sharepoint').checked ? 'Yes' : 'No',
+      minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
+      enteredBy: document.getElementById('enteredBy').value
+    };
+
+    await addDoc(collection(db, "entries"), entry);
+    alert("Entry saved to Firebase!");
+    form.reset();
+    document.getElementById('poSection').style.display = 'none';
+    loadEntries();
+  });
+
+  async function loadEntries() {
+    tableBody.innerHTML = "";
+    savedReceipts = [];
+    const querySnapshot = await getDocs(collection(db, "entries"));
+    querySnapshot.forEach((doc) => {
+      const entry = doc.data();
+      savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
+      const row = tableBody.insertRow();
+      row.insertCell(0).innerText = entry.pickupName || '';
+      row.insertCell(1).innerText = entry.pickupDate || '';
+      row.insertCell(2).innerText = entry.sharepoint || '';
+      row.insertCell(3).innerText = entry.minermall || '';
+      row.insertCell(4).innerText = entry.enteredBy || '';
+    });
+  }
+</script>
 </body>
 </html>
