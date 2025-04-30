@@ -117,6 +117,14 @@
     }
   }
 
+  // ✅ Allow Enter key to also submit passcode
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
+      e.preventDefault();
+      checkPasscode();
+    }
+  });
+
   function toggleChecklist(show) {
     document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
   }
