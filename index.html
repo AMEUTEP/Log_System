@@ -15,6 +15,7 @@
     #protectedContent { display: none; }
     #receiptToPrint { display: none; margin-top: 20px; padding: 20px; border: 1px solid #ccc; width: fit-content; background-color: #f9f9f9; }
     #poContainer { display: none; }
+    #poWarning { color: red; margin-top: 5px; display: none; }
   </style>
 </head>
 <body>
@@ -39,6 +40,7 @@
       <fieldset>
         <legend>PO Number (Required if duplicate)</legend>
         <input type="text" id="poNumber">
+        <p id="poWarning">This Receipt # is already used. Please enter a PO Number to continue.</p>
       </fieldset>
     </div>
 
@@ -70,39 +72,6 @@
 
     <button type="submit">Submit</button>
   </form>
-
-  <button onclick="printReceipt()">Print Last Receipt</button>
-
-  <div class="controls">
-    <button onclick="downloadCSV()">Download CSV</button>
-    <button onclick="confirmAdminClear()">Clear All Entries</button><br><br>
-    <label>Search Receipt # or Name: </label>
-    <input type="text" id="filterInput" onkeyup="filterEntries()">
-    <br><br>
-    <label>Filter by Date: </label>
-    <input type="date" id="filterDate" onchange="filterEntries()">
-  </div>
-
-  <h2>Saved Entries</h2>
-  <table id="logTable">
-    <thead>
-      <tr>
-        <th>Highlight</th>
-        <th>Receipt #</th>
-        <th>PO #</th>
-        <th>Picked Up By</th>
-        <th>Date</th>
-        <th>SharePoint</th>
-        <th>MinerMall</th>
-        <th>Entered By</th>
-        <th>Edit</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<div id="receiptToPrint"></div>
 
 <script>
   const PASSCODE = "LevoskyUTEPA129!";
@@ -147,12 +116,17 @@
     e.preventDefault();
     const receipt = document.getElementById('receiptNumber').value.trim();
     const po = document.getElementById('poNumber').value.trim();
-    const isDup = entries.some(e => e.receiptNumber === receipt && e.poNumber === '');
+    const warning = document.getElementById('poWarning');
+
+    const isDup = entries.some(e => e.receiptNumber === receipt && (!e.poNumber || e.poNumber.trim() === ''));
+
     if (isDup && po === '') {
-      alert("Duplicate Receipt # found. Please enter PO Number.");
       document.getElementById('poContainer').style.display = 'block';
+      warning.style.display = 'block';
       return;
     }
+
+    warning.style.display = 'none';
 
     lastEntry = {
       receiptNumber: receipt,
@@ -163,6 +137,7 @@
       minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
       enteredBy: document.getElementById('enteredBy').value
     };
+
     entries.push(lastEntry);
     localStorage.setItem('pickupEntries', JSON.stringify(entries));
     refreshTable();
@@ -173,6 +148,7 @@
 
   function refreshTable() {
     const tbody = document.querySelector('#logTable tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
     entries.forEach((entry, i) => {
       const row = tbody.insertRow();
@@ -207,64 +183,6 @@
     entries.splice(i, 1);
     localStorage.setItem('pickupEntries', JSON.stringify(entries));
     refreshTable();
-  }
-
-  function confirmAdminClear() {
-    const pass = prompt("Enter admin passcode to clear all entries:");
-    if (pass === PASSCODE) {
-      if (confirm("Are you sure you want to delete ALL entries?")) {
-        localStorage.removeItem('pickupEntries');
-        entries = [];
-        refreshTable();
-      }
-    } else {
-      alert("Incorrect admin passcode.");
-    }
-  }
-
-  function printReceipt() {
-    if (!lastEntry) return alert("Submit a package first.");
-    const div = document.getElementById('receiptToPrint');
-    div.innerHTML = `
-      <h3>Package Pickup Receipt</h3>
-      <p><strong>Receipt #:</strong> ${lastEntry.receiptNumber}</p>
-      <p><strong>PO #:</strong> ${lastEntry.poNumber || '-'}</p>
-      <p><strong>Name:</strong> ${lastEntry.pickupName}</p>
-      <p><strong>Date:</strong> ${lastEntry.pickupDate}</p>
-      <p><strong>SharePoint:</strong> ${lastEntry.sharepoint}</p>
-      <p><strong>MinerMall:</strong> ${lastEntry.minermall}</p>
-      <p><strong>Entered By:</strong> ${lastEntry.enteredBy}</p>
-    `;
-    const win = window.open('', '', 'width=400,height=600');
-    win.document.write('<html><head><title>Print Receipt</title></head><body>');
-    win.document.write(div.innerHTML);
-    win.document.write('</body></html>');
-    win.print();
-    win.close();
-  }
-
-  function downloadCSV() {
-    const rows = [['Receipt #', 'PO #', 'Picked Up By', 'Date', 'SharePoint', 'MinerMall', 'Entered By']];
-    entries.forEach(e => rows.push([e.receiptNumber, e.poNumber || '-', e.pickupName, e.pickupDate, e.sharepoint, e.minermall, e.enteredBy]));
-    const blob = new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'package_log.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function filterEntries() {
-    const text = document.getElementById('filterInput').value.toLowerCase();
-    const date = document.getElementById('filterDate').value;
-    Array.from(document.querySelectorAll('#logTable tbody tr')).forEach(row => {
-      const cells = row.querySelectorAll('td');
-      const matchesText = cells[1].innerText.toLowerCase().includes(text) || cells[3].innerText.toLowerCase().includes(text);
-      const matchesDate = date ? cells[4].innerText === date : true;
-      row.style.display = matchesText && matchesDate ? '' : 'none';
-    });
   }
 </script>
 
