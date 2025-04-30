@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -83,7 +84,7 @@
   </table>
 </div>
 
-<!-- Firebase SDK (module) -->
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -100,11 +101,11 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-
-  window.firebaseDB = db; // expose to global script
+  window.firebaseReady = true;
+  window.firebaseDB = db;
 </script>
 
-<!-- Functional Logic -->
+<!-- App Logic -->
 <script>
   const form = document.getElementById("pickupForm");
   const tableBody = document.querySelector("#logTable tbody");
@@ -120,7 +121,7 @@
       document.getElementById("loginScreen").style.display = "none";
       document.getElementById("app").style.display = "block";
       document.getElementById("ameQuestion").style.display = "block";
-      loadEntries();
+      setTimeout(loadEntries, 500);  // wait for firebaseReady
     } else {
       document.getElementById("loginError").innerText = "Incorrect passcode.";
     }
@@ -134,53 +135,61 @@
   });
 
   async function loadEntries() {
-    const db = window.firebaseDB;
-    tableBody.innerHTML = "";
-    savedReceipts = [];
-    const snapshot = await getDocs(collection(db, "entries"));
-    snapshot.forEach(doc => {
-      const entry = doc.data();
-      savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
-      const row = tableBody.insertRow();
-      row.insertCell(0).innerText = entry.pickupName || "";
-      row.insertCell(1).innerText = entry.pickupDate || "";
-      row.insertCell(2).innerText = entry.sharepoint || "";
-      row.insertCell(3).innerText = entry.minermall || "";
-      row.insertCell(4).innerText = entry.enteredBy || "";
-    });
+    try {
+      const db = window.firebaseDB;
+      const querySnapshot = await getDocs(collection(db, "entries"));
+      tableBody.innerHTML = "";
+      savedReceipts = [];
+      querySnapshot.forEach(doc => {
+        const entry = doc.data();
+        savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
+        const row = tableBody.insertRow();
+        row.insertCell(0).innerText = entry.pickupName || '';
+        row.insertCell(1).innerText = entry.pickupDate || '';
+        row.insertCell(2).innerText = entry.sharepoint || '';
+        row.insertCell(3).innerText = entry.minermall || '';
+        row.insertCell(4).innerText = entry.enteredBy || '';
+      });
+    } catch (err) {
+      console.error("Error loading entries:", err);
+    }
   }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const db = window.firebaseDB;
+    try {
+      const db = window.firebaseDB;
+      const receipt = document.getElementById("receiptNumber").value;
+      const po = document.getElementById("poNumber").value;
+      const combinedKey = receipt + po;
 
-    const receipt = document.getElementById("receiptNumber").value;
-    const po = document.getElementById("poNumber").value;
-    const combinedKey = receipt + po;
-
-    if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
-      if (!po) {
-        document.getElementById("poSection").style.display = "block";
-        alert("Duplicate Receipt Number detected. Please enter PO Number.");
-        return;
+      if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
+        if (!po) {
+          document.getElementById("poSection").style.display = "block";
+          alert("Duplicate Receipt Number detected. Please enter PO Number.");
+          return;
+        }
       }
+
+      const entry = {
+        receiptNumber: receipt,
+        poNumber: po,
+        pickupName: document.getElementById("pickupName").value,
+        pickupDate: document.getElementById("pickupDate").value,
+        sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
+        minermall: document.getElementById("minermall").checked ? "Yes" : "No",
+        enteredBy: document.getElementById("enteredBy").value
+      };
+
+      await addDoc(collection(db, "entries"), entry);
+      alert("Entry saved to Firebase!");
+      form.reset();
+      document.getElementById("poSection").style.display = "none";
+      loadEntries();
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      alert("Error saving entry: " + err.message);
     }
-
-    const entry = {
-      receiptNumber: receipt,
-      poNumber: po,
-      pickupName: document.getElementById("pickupName").value,
-      pickupDate: document.getElementById("pickupDate").value,
-      sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
-      minermall: document.getElementById("minermall").checked ? "Yes" : "No",
-      enteredBy: document.getElementById("enteredBy").value
-    };
-
-    await addDoc(collection(db, "entries"), entry);
-    alert("Entry saved to Firebase!");
-    form.reset();
-    document.getElementById("poSection").style.display = "none";
-    loadEntries();
   });
 </script>
 </body>
