@@ -28,16 +28,16 @@
     <fieldset>
       <legend>Receipt Info</legend>
       <label for="receiptNumber">Receipt Number:</label><br>
-      <input type="text" id="receiptNumber" name="receiptNumber" required><br><br>
+      <input type="text" id="receiptNumber" required><br><br>
     </fieldset>
 
     <fieldset>
       <legend>Pickup Details</legend>
       <label for="pickupName">Name (Who Picked Up):</label><br>
-      <input type="text" id="pickupName" name="pickupName" required><br><br>
+      <input type="text" id="pickupName" required><br><br>
 
       <label for="pickupDate">Date of Pickup:</label><br>
-      <input type="date" id="pickupDate" name="pickupDate" required>
+      <input type="date" id="pickupDate" required>
     </fieldset>
 
     <fieldset id="ameQuestion">
@@ -49,20 +49,20 @@
 
     <fieldset id="dataChecklist">
       <legend>Data Entry Checklist</legend>
-      <input type="checkbox" id="sharepoint" name="sharepoint">
+      <input type="checkbox" id="sharepoint">
       <label for="sharepoint">SharePoint</label><br>
 
-      <input type="checkbox" id="minermall" name="minermall">
+      <input type="checkbox" id="minermall">
       <label for="minermall">MinerMall</label><br><br>
 
       <label for="enteredBy">Entered By (Name):</label><br>
-      <input type="text" id="enteredBy" name="enteredBy" required>
+      <input type="text" id="enteredBy" required>
     </fieldset>
 
     <fieldset id="poSection">
       <legend>PO Number (Required for duplicates)</legend>
       <label for="poNumber">PO Number:</label><br>
-      <input type="text" id="poNumber" name="poNumber"><br><br>
+      <input type="text" id="poNumber"><br><br>
     </fieldset>
 
     <button type="submit">Submit</button>
@@ -82,7 +82,8 @@
     <tbody></tbody>
   </table>
 </div>
-<!-- Firebase SDK + App Logic -->
+
+<!-- Firebase SDK (module) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
   import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -100,23 +101,28 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  window.firebaseDB = db; // expose to global script
+</script>
+
+<!-- Functional Logic -->
+<script>
   const form = document.getElementById("pickupForm");
   const tableBody = document.querySelector("#logTable tbody");
   let savedReceipts = [];
 
   function toggleChecklist(show) {
-    document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
+    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
   }
 
   function checkPasscode() {
-    const input = document.getElementById('passcodeInput').value;
+    const input = document.getElementById("passcodeInput").value;
     if (input === "LevoskyUTEPA129!") {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      document.getElementById('ameQuestion').style.display = 'block';
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      document.getElementById("ameQuestion").style.display = "block";
       loadEntries();
     } else {
-      document.getElementById('loginError').innerText = "Incorrect passcode.";
+      document.getElementById("loginError").innerText = "Incorrect passcode.";
     }
   }
 
@@ -128,6 +134,7 @@
   });
 
   async function loadEntries() {
+    const db = window.firebaseDB;
     tableBody.innerHTML = "";
     savedReceipts = [];
     const snapshot = await getDocs(collection(db, "entries"));
@@ -135,23 +142,25 @@
       const entry = doc.data();
       savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
       const row = tableBody.insertRow();
-      row.insertCell(0).innerText = entry.pickupName || '';
-      row.insertCell(1).innerText = entry.pickupDate || '';
-      row.insertCell(2).innerText = entry.sharepoint || '';
-      row.insertCell(3).innerText = entry.minermall || '';
-      row.insertCell(4).innerText = entry.enteredBy || '';
+      row.insertCell(0).innerText = entry.pickupName || "";
+      row.insertCell(1).innerText = entry.pickupDate || "";
+      row.insertCell(2).innerText = entry.sharepoint || "";
+      row.insertCell(3).innerText = entry.minermall || "";
+      row.insertCell(4).innerText = entry.enteredBy || "";
     });
   }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const receipt = document.getElementById('receiptNumber').value;
-    const po = document.getElementById('poNumber').value;
+    const db = window.firebaseDB;
+
+    const receipt = document.getElementById("receiptNumber").value;
+    const po = document.getElementById("poNumber").value;
     const combinedKey = receipt + po;
 
     if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
       if (!po) {
-        document.getElementById('poSection').style.display = 'block';
+        document.getElementById("poSection").style.display = "block";
         alert("Duplicate Receipt Number detected. Please enter PO Number.");
         return;
       }
@@ -160,17 +169,17 @@
     const entry = {
       receiptNumber: receipt,
       poNumber: po,
-      pickupName: document.getElementById('pickupName').value,
-      pickupDate: document.getElementById('pickupDate').value,
-      sharepoint: document.getElementById('sharepoint').checked ? 'Yes' : 'No',
-      minermall: document.getElementById('minermall').checked ? 'Yes' : 'No',
-      enteredBy: document.getElementById('enteredBy').value
+      pickupName: document.getElementById("pickupName").value,
+      pickupDate: document.getElementById("pickupDate").value,
+      sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
+      minermall: document.getElementById("minermall").checked ? "Yes" : "No",
+      enteredBy: document.getElementById("enteredBy").value
     };
 
     await addDoc(collection(db, "entries"), entry);
     alert("Entry saved to Firebase!");
     form.reset();
-    document.getElementById('poSection').style.display = 'none';
+    document.getElementById("poSection").style.display = "none";
     loadEntries();
   });
 </script>
