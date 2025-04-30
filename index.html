@@ -12,6 +12,31 @@
     th { background-color: #f4f4f4; }
   </style>
 </head>
+  <script>
+  function checkPasscode() {
+    const input = document.getElementById('passcodeInput').value;
+    if (input === "LevoskyUTEPA129!") {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('ameQuestion').style.display = 'block';
+      loadEntries();
+    } else {
+      document.getElementById('loginError').innerText = "Incorrect passcode.";
+    }
+  }
+
+  function toggleChecklist(show) {
+    document.getElementById('dataChecklist').style.display = show ? 'block' : 'none';
+  }
+
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
+      e.preventDefault();
+      checkPasscode();
+    }
+  });
+</script>
+
 <body>
 
 <div id="loginScreen">
