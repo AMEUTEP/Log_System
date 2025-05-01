@@ -13,6 +13,7 @@
     th { background-color: #f4f4f4; }
     #spinner { font-style: italic; color: gray; margin-bottom: 10px; }
     .danger { background-color: #ffe6e6; border: 1px solid red; padding: 5px 10px; }
+    .filter-bar input { margin-right: 10px; padding: 5px; }
   </style>
 </head>
 <body>
@@ -75,6 +76,15 @@
     <button class="danger" onclick="confirmClear()">Clear All Entries</button>
   </div>
 
+  <div class="filter-bar">
+    <h3>Filter Entries:</h3>
+    <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
+    <input type="text" id="filterName" placeholder="Filter by Name">
+    <input type="date" id="filterDate" placeholder="Filter by Date">
+    <button onclick="applyFilters()">Apply</button>
+    <button onclick="clearFilters()">Clear</button>
+  </div>
+
   <div id="spinner">Loading entries...</div>
 
   <h2>Saved Entries</h2>
@@ -108,13 +118,12 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  window.firebaseDB = db;
+  let allEntries = [];
 
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("pickupForm");
     const tableBody = document.querySelector("#logTable tbody");
     const spinner = document.getElementById("spinner");
-    let savedReceipts = [];
 
     window.toggleChecklist = function(show) {
       document.getElementById("dataChecklist").style.display = show ? "block" : "none";
@@ -139,38 +148,53 @@
       }
     });
 
-    async function loadEntries() {
-      spinner.style.display = "block";
+    window.applyFilters = function () {
+      const receipt = document.getElementById("filterReceipt").value.toLowerCase();
+      const name = document.getElementById("filterName").value.toLowerCase();
+      const date = document.getElementById("filterDate").value;
+
+      const filtered = allEntries.filter(entry =>
+        (entry.receiptNumber || "").toLowerCase().includes(receipt) &&
+        (entry.pickupName || "").toLowerCase().includes(name) &&
+        (entry.pickupDate || "").includes(date)
+      );
+      renderTable(filtered);
+    };
+
+    window.clearFilters = function () {
+      document.getElementById("filterReceipt").value = "";
+      document.getElementById("filterName").value = "";
+      document.getElementById("filterDate").value = "";
+      renderTable(allEntries);
+    };
+
+    function renderTable(entries) {
       tableBody.innerHTML = "";
-      savedReceipts = [];
-      const snapshot = await getDocs(collection(db, "entries"));
-      snapshot.forEach((docRef) => {
-        const entry = docRef.data();
-        savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
+      for (const entry of entries) {
         const row = tableBody.insertRow();
         row.insertCell(0).innerText = entry.pickupName || '';
         row.insertCell(1).innerText = entry.pickupDate || '';
         row.insertCell(2).innerText = entry.sharepoint || '';
         row.insertCell(3).innerText = entry.minermall || '';
         row.insertCell(4).innerText = entry.enteredBy || '';
+      }
+    }
+
+    async function loadEntries() {
+      spinner.style.display = "block";
+      allEntries = [];
+      const snapshot = await getDocs(collection(db, "entries"));
+      snapshot.forEach(docRef => {
+        allEntries.push(docRef.data());
       });
+      renderTable(allEntries);
       spinner.style.display = "none";
     }
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const receipt = document.getElementById("receiptNumber").value;
       const po = document.getElementById("poNumber").value;
-      const combinedKey = receipt + po;
-
-      if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
-        if (!po) {
-          document.getElementById("poSection").style.display = "block";
-          alert("Duplicate Receipt Number detected. Please enter PO Number.");
-          return;
-        }
-      }
 
       const entry = {
         receiptNumber: receipt,
@@ -186,11 +210,9 @@
         await addDoc(collection(db, "entries"), entry);
         alert("Entry saved to Firebase!");
         form.reset();
-        document.getElementById("poSection").style.display = "none";
         loadEntries();
-      } catch (error) {
-        console.error("Error saving entry:", error);
-        alert("Error saving entry: " + error.message);
+      } catch (err) {
+        alert("Error: " + err.message);
       }
     });
 
