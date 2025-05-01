@@ -10,14 +10,14 @@
     header h1 { margin: 0; font-size: 1.8em; }
     header span { font-size: 0.9em; font-weight: normal; }
     .container { padding: 20px; }
-    fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #FF8200; }
+    fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #c57017; }
     legend { font-weight: bold; color: #00205B; }
-    label { display: block; margin-top: 10px; display: inline-block; width: auto; min-width: 150px; }
+    label { display: block; margin-top: 10px; }
     input, button { padding: 8px; margin-top: 5px; width: 100%; box-sizing: border-box; }
-    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; }
-    button:hover { background: #cc6a00; }
-    .danger { background: #e74c3c; }
-    .danger:hover { background: #c0392b; }
+    button { background: #c57017; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; }
+    button:hover { background: #b85e00; }
+    .danger { background: #a94442; }
+    .danger:hover { background: #8b3d3a; }
     #spinner { font-style: italic; color: gray; margin: 10px 0; display: none; }
     .filter-bar input { margin-right: 10px; padding: 5px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
@@ -59,8 +59,8 @@
       <fieldset id="ameQuestion">
         <legend>🏛️ Department Info</legend>
         <label>Is the Package from AME Dept?</label>
-        <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> <label>Yes</label><br> Yes
-        <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> <label>No</label> No
+        <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
+        <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
       </fieldset>
       <fieldset id="dataChecklist" style="display:none;">
         <legend>✅ Data Entry Checklist</legend>
