@@ -6,15 +6,16 @@
   <title>🚀 AME Package Pickup Log</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
-    header { background: #00205B; color: white; padding: 20px; }
+    header { background: #00205B; color: white; padding: 20px; display: flex; align-items: center; }
     header h1 { margin: 0; font-size: 1.8em; }
-    header span { font-size: 0.9em; font-weight: normal; }
+    header img { height: 30px; margin-right: 10px; }
+    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 10px; }
     .container { padding: 20px; }
     fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #FF8200; }
     legend { font-weight: bold; color: #00205B; }
     label { display: block; margin-top: 10px; }
     input, button { padding: 8px; margin-top: 5px; box-sizing: border-box; }
-    input[type="text"], input[type="date"] { width: 100%; }
+    input[type="text"], input[type="password"], input[type="date"] { width: 100%; }
     button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 8px 16px; margin-right: 10px; }
     button:hover { background: #cc6a00; }
     .danger { background: #e74c3c; }
@@ -25,16 +26,27 @@
     th { background: #00205B; color: white; }
     tr:nth-child(odd) { background: #f2f2f2; }
     .highlighted { background-color: #fff9c4 !important; }
+    #loginScreen { text-align: center; margin-top: 100px; }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🚀 AME Package Pickup Log</h1>
-  <span>Aerospace and Mechanical Engineering Dept</span>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Emoji_u1f680.svg/1200px-Emoji_u1f680.svg.png" alt="Rocket Icon">
+  <div>
+    <h1>AME Package Pickup Log</h1>
+    <span>Aerospace and Mechanical Engineering Dept</span>
+  </div>
 </header>
 
-<div class="container">
+<div id="loginScreen">
+  <h2>Enter Passcode to Access</h2>
+  <input type="password" id="passcodeInput" placeholder="Enter passcode" style="width: 250px;" />
+  <br><br>
+  <button onclick="checkPasscode()">Submit</button>
+</div>
+
+<div id="protectedContent" style="display: none;" class="container">
   <form id="pickupForm">
     <fieldset>
       <legend>📄 Receipt Info</legend>
@@ -51,32 +63,32 @@
     <fieldset>
       <legend>🏛️ Department Info</legend>
       <label>Is the Package from AME Dept?</label><br>
-      <label><input type="radio" name="ameDept" value="yes"> Yes</label><br>
-      <label><input type="radio" name="ameDept" value="no"> No</label>
+      <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
+      <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
     </fieldset>
-    <fieldset>
+    <fieldset id="dataChecklist" style="display:none;">
       <legend>✅ Data Entry Checklist</legend>
       <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
       <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
       <label for="enteredBy">Entered By:</label>
-      <input type="text" id="enteredBy" required />
+      <input type="text" id="enteredBy" name="enteredBy" required />
     </fieldset>
     <button type="submit">Submit Entry</button>
-    <button class="danger" type="reset">Clear All Entries</button>
+    <button class="danger" type="button" onclick="alert('Clear logic here')">Clear All Entries</button>
   </form>
 
   <h3>🔍 Filter Entries</h3>
   <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
   <input type="text" id="filterName" placeholder="Filter by Name">
   <input type="date" id="filterDate">
-  <button>Apply</button>
-  <button type="reset">Clear</button>
+  <button onclick="alert('Filter logic here')">Apply</button>
+  <button onclick="alert('Clear filter logic')">Clear</button>
 
   <div id="spinner">Loading entries...</div>
 
   <h2>📑 Saved Entries</h2>
   <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
-  <table>
+  <table id="logTable">
     <thead>
       <tr>
         <th>Receipt #</th>
@@ -87,18 +99,25 @@
         <th>Entered By</th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td>48018804</td>
-        <td>Pedro Ferreira</td>
-        <td>2025-05-28</td>
-        <td>Yes</td>
-        <td>Yes</td>
-        <td>Jacob Martinez</td>
-      </tr>
-    </tbody>
+    <tbody></tbody>
   </table>
 </div>
+
+<script>
+  function toggleChecklist(show) {
+    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
+  }
+
+  function checkPasscode() {
+    const input = document.getElementById("passcodeInput").value;
+    if (input === "LevoskyUTEPA129!") {
+      document.getElementById("protectedContent").style.display = "block";
+      document.getElementById("loginScreen").style.display = "none";
+    } else {
+      alert("Incorrect passcode.");
+    }
+  }
+</script>
 
 </body>
 </html>
