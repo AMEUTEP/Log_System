@@ -2,245 +2,232 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Package Pickup Log</title>
+  <meta charset="UTF-8" />
+  <title>🚀 AME Package Pickup Log</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #app, #poSection, #dataChecklist, #ameQuestion, #spinner { display: none; }
-    fieldset { margin-bottom: 20px; padding: 10px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
-    #spinner { font-style: italic; color: gray; margin-bottom: 10px; }
-    .danger { background-color: #ffe6e6; border: 1px solid red; padding: 5px 10px; }
-    .filter-bar input { margin-right: 10px; padding: 5px; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    header {
+      background-color: #00205B;
+      color: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+
+    header span {
+      font-size: 0.9em;
+      font-weight: normal;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    fieldset {
+      border: 1px solid #ccc;
+      border-left: 4px solid #FF8200;
+      margin-bottom: 20px;
+      padding: 10px 15px;
+      background: #fff;
+    }
+
+    legend {
+      font-weight: bold;
+      color: #00205B;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #FF8200;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #cc6a00;
+    }
+
+    .danger {
+      background-color: #e74c3c;
+    }
+
+    .danger:hover {
+      background-color: #c0392b;
+    }
+
+    #spinner {
+      font-style: italic;
+      color: gray;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    .filter-bar input {
+      margin-right: 10px;
+      padding: 5px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #00205B;
+      color: white;
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: #f2f2f2;
+    }
+
+    .highlighted {
+      background-color: #fff9c4 !important;
+    }
+
+    #loginScreen {
+      padding: 50px;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    #loginScreen input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
 
-<div id="loginScreen">
-  <h2>Enter Passcode to Access Log System</h2>
-  <input type="password" id="passcodeInput" placeholder="Enter passcode" />
-  <button onclick="checkPasscode()">Submit</button>
-  <p id="loginError" style="color: red;"></p>
-</div>
+<header>
+  <div>
+    <h1>🚀 AME Package Pickup Log</h1>
+    <span>Aerospace and Mechanical Engineering Dept</span>
+  </div>
+</header>
 
-<div id="app">
-  <h1>Package Pickup Log</h1>
-
-  <form id="pickupForm">
-    <fieldset>
-      <legend>Receipt Info</legend>
-      <label for="receiptNumber">Receipt Number:</label><br>
-      <input type="text" id="receiptNumber" required><br><br>
-    </fieldset>
-
-    <fieldset>
-      <legend>Pickup Details</legend>
-      <label for="pickupName">Name (Who Picked Up):</label><br>
-      <input type="text" id="pickupName" required><br><br>
-
-      <label for="pickupDate">Date of Pickup:</label><br>
-      <input type="date" id="pickupDate" required>
-    </fieldset>
-
-    <fieldset id="ameQuestion">
-      <legend>Department</legend>
-      <label>Is the Package from AME Dept?</label><br>
-      <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
-      <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
-    </fieldset>
-
-    <fieldset id="dataChecklist">
-      <legend>Data Entry Checklist</legend>
-      <input type="checkbox" id="sharepoint">
-      <label for="sharepoint">SharePoint</label><br>
-
-      <input type="checkbox" id="minermall">
-      <label for="minermall">MinerMall</label><br><br>
-
-      <label for="enteredBy">Entered By (Name):</label><br>
-      <input type="text" id="enteredBy" required>
-    </fieldset>
-
-    <fieldset id="poSection">
-      <legend>PO Number (Required for duplicates)</legend>
-      <label for="poNumber">PO Number:</label><br>
-      <input type="text" id="poNumber"><br><br>
-    </fieldset>
-
-    <button type="submit">Submit</button>
-  </form>
-
-  <div style="margin-top: 20px;">
-    <button class="danger" onclick="confirmClear()">Clear All Entries</button>
+<div class="container">
+  <div id="loginScreen">
+    <h2>Enter Passcode to Access</h2>
+    <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+    <button onclick="checkPasscode()">Submit</button>
+    <p id="loginError" style="color: red;"></p>
   </div>
 
-  <div class="filter-bar">
-    <h3>Filter Entries:</h3>
-    <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
-    <input type="text" id="filterName" placeholder="Filter by Name">
-    <input type="date" id="filterDate" placeholder="Filter by Date">
-    <button onclick="applyFilters()">Apply</button>
-    <button onclick="clearFilters()">Clear</button>
+  <div id="app" style="display:none;">
+    <form id="pickupForm">
+      <fieldset>
+        <legend>📄 Receipt Info</legend>
+        <label for="receiptNumber">Receipt Number:</label>
+        <input type="text" id="receiptNumber" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>🧍 Pickup Details</legend>
+        <label for="pickupName">Name (Who Picked Up):</label>
+        <input type="text" id="pickupName" required />
+        <label for="pickupDate">Date of Pickup:</label>
+        <input type="date" id="pickupDate" required />
+      </fieldset>
+
+      <fieldset id="ameQuestion">
+        <legend>🏛️ Department Info</legend>
+        <label>Is the Package from AME Dept?</label>
+        <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
+        <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
+      </fieldset>
+
+      <fieldset id="dataChecklist" style="display:none;">
+        <legend>✅ Data Entry Checklist</legend>
+        <input type="checkbox" id="sharepoint">
+        <label for="sharepoint">SharePoint</label><br>
+        <input type="checkbox" id="minermall">
+        <label for="minermall">MinerMall</label><br>
+        <label for="enteredBy">Entered By:</label>
+        <input type="text" id="enteredBy" required />
+      </fieldset>
+
+      <fieldset id="poSection" style="display:none;">
+        <legend>📦 PO Number</legend>
+        <label for="poNumber">PO Number:</label>
+        <input type="text" id="poNumber" />
+      </fieldset>
+
+      <button type="submit">Submit Entry</button>
+      <button class="danger" type="button" onclick="confirmClear()">Clear All Entries</button>
+    </form>
+
+    <div class="filter-bar">
+      <h3>🔍 Filter Entries:</h3>
+      <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
+      <input type="text" id="filterName" placeholder="Filter by Name">
+      <input type="date" id="filterDate">
+      <button onclick="applyFilters()">Apply</button>
+      <button onclick="clearFilters()">Clear</button>
+    </div>
+
+    <div id="spinner">Loading entries...</div>
+
+    <h2>📑 Saved Entries</h2>
+    <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
+    <table id="logTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Receipt #</th>
+          <th>Picked Up By</th>
+          <th>Date</th>
+          <th>SharePoint</th>
+          <th>MinerMall</th>
+          <th>Entered By</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
-
-  <div id="spinner">Loading entries...</div>
-
-  <h2>Saved Entries</h2>
-  <p style="font-style: italic; color: gray; margin-top: 5px;">
-    Highlight if submitted in PeopleSoft.
-  </p>
-
-  <table id="logTable">
-    <thead>
-      <tr>
-        <th></th>
-        <th>Receipt #</th>
-        <th>Picked Up By</th>
-        <th>Date</th>
-        <th>SharePoint</th>
-        <th>MinerMall</th>
-        <th>Entered By</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
 </div>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
-    authDomain: "packagelog-8a672.firebaseapp.com",
-    projectId: "packagelog-8a672",
-    storageBucket: "packagelog-8a672.appspot.com",
-    messagingSenderId: "424373386333",
-    appId: "1:424373386333:web:9827c71cafb9829d0fa1b4",
-    measurementId: "G-12P37M2SKV"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  let allEntries = [];
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("pickupForm");
-    const tableBody = document.querySelector("#logTable tbody");
-    const spinner = document.getElementById("spinner");
-
-    window.toggleChecklist = function(show) {
-      document.getElementById("dataChecklist").style.display = show ? "block" : "none";
-    };
-
-    window.checkPasscode = function() {
-      const input = document.getElementById("passcodeInput").value;
-      if (input === "LevoskyUTEPA129!") {
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("app").style.display = "block";
-        document.getElementById("ameQuestion").style.display = "block";
-        loadEntries();
-      } else {
-        document.getElementById("loginError").innerText = "Incorrect passcode.";
-      }
-    };
-
-    window.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
-        e.preventDefault();
-        window.checkPasscode();
-      }
-    });
-
-    window.applyFilters = function () {
-      const receipt = document.getElementById("filterReceipt").value.toLowerCase();
-      const name = document.getElementById("filterName").value.toLowerCase();
-      const date = document.getElementById("filterDate").value;
-
-      const filtered = allEntries.filter(entry =>
-        (entry.receiptNumber || "").toLowerCase().includes(receipt) &&
-        (entry.pickupName || "").toLowerCase().includes(name) &&
-        (entry.pickupDate || "").includes(date)
-      );
-      renderTable(filtered);
-    };
-
-    window.clearFilters = function () {
-      document.getElementById("filterReceipt").value = "";
-      document.getElementById("filterName").value = "";
-      document.getElementById("filterDate").value = "";
-      renderTable(allEntries);
-    };
-
-    function renderTable(entries) {
-      tableBody.innerHTML = "";
-      for (const entry of entries) {
-        const row = tableBody.insertRow();
-        const highlightCell = row.insertCell();
-        const highlightBtn = document.createElement("button");
-        highlightBtn.textContent = "Highlight";
-        highlightBtn.onclick = () => {
-          row.style.backgroundColor = row.style.backgroundColor === "lightyellow" ? "" : "lightyellow";
-        };
-        highlightCell.appendChild(highlightBtn);
-
-        row.insertCell().innerText = entry.receiptNumber || '';
-        row.insertCell().innerText = entry.pickupName || '';
-        row.insertCell().innerText = entry.pickupDate || '';
-        row.insertCell().innerText = entry.sharepoint || '';
-        row.insertCell().innerText = entry.minermall || '';
-        row.insertCell().innerText = entry.enteredBy || '';
-      }
-    }
-
-    async function loadEntries() {
-      spinner.style.display = "block";
-      allEntries = [];
-      const snapshot = await getDocs(collection(db, "entries"));
-      snapshot.forEach(docRef => {
-        allEntries.push(docRef.data());
-      });
-      renderTable(allEntries);
-      spinner.style.display = "none";
-    }
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const receipt = document.getElementById("receiptNumber").value;
-      const po = document.getElementById("poNumber").value;
-
-      const entry = {
-        receiptNumber: receipt,
-        poNumber: po,
-        pickupName: document.getElementById("pickupName").value,
-        pickupDate: document.getElementById("pickupDate").value,
-        sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
-        minermall: document.getElementById("minermall").checked ? "Yes" : "No",
-        enteredBy: document.getElementById("enteredBy").value
-      };
-
-      try {
-        await addDoc(collection(db, "entries"), entry);
-        alert("Entry saved to Firebase!");
-        form.reset();
-        loadEntries();
-      } catch (err) {
-        alert("Error: " + err.message);
-      }
-    });
-
-    window.confirmClear = async function() {
-      if (!confirm("Are you sure you want to delete ALL saved entries?")) return;
-      const snapshot = await getDocs(collection(db, "entries"));
-      for (const docRef of snapshot.docs) {
-        await deleteDoc(doc(db, "entries", docRef.id));
-      }
-      alert("All entries cleared.");
-      loadEntries();
-    };
-  });
+<script>
+// The rest of your JS logic goes here
 </script>
 </body>
 </html>
