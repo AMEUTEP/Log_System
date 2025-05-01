@@ -14,9 +14,9 @@
     legend { font-weight: bold; color: #00205B; }
     label { display: block; margin-top: 10px; }
     input, button { padding: 8px; margin-top: 5px; width: 100%; box-sizing: border-box; }
-    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; }
+    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 4px; padding: 8px 16px; margin-right: 10px; width: auto; }
     button:hover { background: #cc6a00; }
-    .danger { background: #e74c3c; }
+    .danger { background: #e74c3c; margin-top: 10px; }
     .danger:hover { background: #c0392b; }
     #spinner { font-style: italic; color: gray; margin: 10px 0; display: none; }
     .filter-bar input { margin-right: 10px; padding: 5px; }
@@ -58,9 +58,9 @@
       </fieldset>
       <fieldset id="ameQuestion">
         <legend>🏛️ Department Info</legend>
-        <label for="ameDept">Is the Package from AME Dept?</label><br>
-        <input type="radio" <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
-        <input type="radio" <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
+        <label>Is the Package from AME Dept?</label>
+        <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label>
+        <label style="margin-left: 20px;"><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label></div>
       </fieldset>
       <fieldset id="dataChecklist" style="display:none;">
         <legend>✅ Data Entry Checklist</legend>
