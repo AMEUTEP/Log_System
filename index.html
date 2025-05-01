@@ -3,19 +3,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🚀 AME Package Pickup Log</title>
+  <title>AME Package Pickup Log</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
     header { background: #00205B; color: white; padding: 20px; }
     header h1 { margin: 0; font-size: 1.8em; }
     header span { font-size: 0.9em; font-weight: normal; }
+    .rocket-icon { width: 24px; height: 24px; vertical-align: middle; margin-right: 8px; transition: transform 0.3s ease; }
+    .rocket-icon:hover { transform: scale(1.2) rotate(-10deg); }
     .container { padding: 20px; }
     fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #FF8200; }
     legend { font-weight: bold; color: #00205B; }
     label { display: block; margin-top: 10px; }
     input, button { padding: 8px; margin-top: 5px; box-sizing: border-box; }
     input[type="text"], input[type="password"], input[type="date"] { width: 100%; }
-    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 6px 12px; margin-right: 8px; }
+    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 8px 16px; margin-right: 10px; }
     button:hover { background: #cc6a00; }
     .danger { background: #e74c3c; }
     .danger:hover { background: #c0392b; }
@@ -26,22 +28,15 @@
     tr:nth-child(odd) { background: #f2f2f2; }
     .highlighted { background-color: #fff9c4 !important; }
     #loginScreen { text-align: center; margin-top: 100px; }
-    .rocket-icon {
-      width: 24px;
-      height: 24px;
-      vertical-align: middle;
-      margin-right: 8px;
-      transition: transform 0.3s ease;
-    }
-    .rocket-icon:hover {
-      transform: scale(1.2) rotate(-10deg);
-    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1><img src="https://www.svgrepo.com/show/1320/rocket.svg" alt="Rocket" class="rocket-icon"> AME Package Pickup Log</h1>
+  <h1>
+    <img src="https://www.svgrepo.com/show/1320/rocket.svg" alt="Rocket" class="rocket-icon">
+    AME Package Pickup Log
+  </h1>
   <span>Aerospace and Mechanical Engineering Dept</span>
 </header>
 
@@ -112,7 +107,6 @@
         <th>SharePoint</th>
         <th>MinerMall</th>
         <th>Entered By</th>
-        <th>Attachment</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -121,8 +115,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
@@ -136,19 +129,12 @@
 
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
   let allEntries = [];
 
-  async function loadEntries() {
-    const snapshot = await getDocs(collection(db, "entries"));
-    allEntries = [];
+  function renderTable(entries) {
     const tableBody = document.querySelector("#logTable tbody");
     tableBody.innerHTML = "";
-    snapshot.forEach(docSnap => {
-      const entry = docSnap.data();
-      const id = docSnap.id;
-      allEntries.push({ ...entry, id });
-
+    entries.forEach(entry => {
       const row = tableBody.insertRow();
       const highlightCell = row.insertCell();
       const btn = document.createElement("button");
@@ -161,37 +147,17 @@
       row.insertCell().innerText = entry.sharepoint || '';
       row.insertCell().innerText = entry.minermall || '';
       row.insertCell().innerText = entry.enteredBy || '';
-
-      const attachmentCell = row.insertCell();
-      const attachmentSpan = document.createElement("span");
-      attachmentSpan.id = `link-${id}`;
-      if (entry.attachmentURL) {
-        attachmentSpan.innerHTML = `<a href='${entry.attachmentURL}' target='_blank'>View</a>`;
-      }
-
-      const uploadBtn = document.createElement("button");
-      uploadBtn.textContent = "Upload";
-      uploadBtn.onclick = () => uploadAttachment(id);
-
-      attachmentCell.appendChild(uploadBtn);
-      attachmentCell.appendChild(attachmentSpan);
     });
   }
 
-  async function uploadAttachment(entryId) {
-    const fileInput = document.createElement("input");
-    fileInput.type = "file";
-    fileInput.onchange = async () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-      const fileRef = ref(storage, `attachments/${entryId}/${file.name}`);
-      await uploadBytes(fileRef, file);
-      const downloadURL = await getDownloadURL(fileRef);
-      await updateDoc(doc(db, "entries", entryId), { attachmentURL: downloadURL });
-      const link = document.getElementById(`link-${entryId}`);
-      link.innerHTML = `<a href='${downloadURL}' target='_blank'>View</a>`;
-    };
-    fileInput.click();
+  async function loadEntries() {
+    const spinner = document.getElementById("spinner");
+    spinner.style.display = "block";
+    allEntries = [];
+    const snapshot = await getDocs(collection(db, "entries"));
+    snapshot.forEach(doc => allEntries.push(doc.data()));
+    renderTable(allEntries);
+    spinner.style.display = "none";
   }
 
   document.getElementById("pickupForm").addEventListener("submit", async function (e) {
@@ -235,38 +201,6 @@
     );
     renderTable(filtered);
   };
-
-  function renderTable(entries) {
-    const tableBody = document.querySelector("#logTable tbody");
-    tableBody.innerHTML = "";
-    entries.forEach(entry => {
-      const row = tableBody.insertRow();
-      const highlightCell = row.insertCell();
-      const btn = document.createElement("button");
-      btn.textContent = "Highlight";
-      btn.onclick = () => row.classList.toggle("highlighted");
-      highlightCell.appendChild(btn);
-      row.insertCell().innerText = entry.receiptNumber || '';
-      row.insertCell().innerText = entry.pickupName || '';
-      row.insertCell().innerText = entry.pickupDate || '';
-      row.insertCell().innerText = entry.sharepoint || '';
-      row.insertCell().innerText = entry.minermall || '';
-      row.insertCell().innerText = entry.enteredBy || '';
-      const attachmentCell = row.insertCell();
-      const attachmentSpan = document.createElement("span");
-      attachmentSpan.id = `link-${entry.id}`;
-      if (entry.attachmentURL) {
-        attachmentSpan.innerHTML = `<a href='${entry.attachmentURL}' target='_blank'>View</a>`;
-      }
-
-      const uploadBtn = document.createElement("button");
-      uploadBtn.textContent = "Upload";
-      uploadBtn.onclick = () => uploadAttachment(entry.id);
-
-      attachmentCell.appendChild(uploadBtn);
-      attachmentCell.appendChild(attachmentSpan);
-    });
-  }
 
   window.clearFilters = function () {
     document.getElementById("filterReceipt").value = "";
