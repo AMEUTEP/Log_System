@@ -28,17 +28,7 @@
     #loginScreen { padding: 50px; max-width: 400px; margin: auto; }
   </style>
 </head>
- <script>
-function checkPasscode() {
-    const input = document.getElementById("passcodeInput").value;
-    if (input === "LevoskyUTEPA129!") {
-        document.getElementById("protectedContent").style.display = "block";
-        document.getElementById("loginScreen").style.display = "none";
-    } else {
-        alert("Incorrect passcode.");
-    }
-}
-</script>
+  
 <body>
 <div id="protectedContent" style="display: none;">
 <header>
@@ -244,6 +234,7 @@ function checkPasscode() {
         document.getElementById("passcodeGate").style.display = "none";
     } else {
         alert("Incorrect passcode.");
+      LevoskyUTEPA129!
     }
 }
 </script>
