@@ -9,6 +9,8 @@
     header { background: #00205B; color: white; padding: 20px; }
     header h1 { margin: 0; font-size: 1.8em; }
     header span { font-size: 0.9em; font-weight: normal; }
+    .rocket { display: inline-block; transition: transform 0.3s ease; }
+    .rocket:hover { transform: translateY(-5px) rotate(-10deg); }
     .container { padding: 20px; }
     fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #FF8200; }
     legend { font-weight: bold; color: #00205B; }
@@ -31,7 +33,7 @@
 <body>
 
 <header>
-  <h1>🚀 AME Package Pickup Log</h1>
+  <h1><span class="rocket">🚀</span> AME Package Pickup Log</h1>
   <span>Aerospace and Mechanical Engineering Dept</span>
 </header>
 
@@ -230,4 +232,3 @@
 </script>
 </body>
 </html>
-
