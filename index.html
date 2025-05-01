@@ -61,7 +61,6 @@
       <label>Is the Package from AME Dept?</label><br>
       <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
       <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
-
     </fieldset>
     <fieldset id="dataChecklist" style="display:none;">
       <legend>✅ Data Entry Checklist</legend>
@@ -123,21 +122,6 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   let allEntries = [];
-
-  window.toggleChecklist = function (show) {
-    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
-  };
-
-  window.checkPasscode = function () {
-    const input = document.getElementById("passcodeInput").value;
-    if (input === "LevoskyUTEPA129!") {
-      document.getElementById("protectedContent").style.display = "block";
-      document.getElementById("loginScreen").style.display = "none";
-      loadEntries();
-    } else {
-      alert("Incorrect passcode.");
-    }
-  };
 
   function renderTable(entries) {
     const tableBody = document.querySelector("#logTable tbody");
@@ -215,6 +199,21 @@
     document.getElementById("filterName").value = "";
     document.getElementById("filterDate").value = "";
     renderTable(allEntries);
+  };
+
+  window.toggleChecklist = function (show) {
+    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
+  };
+
+  window.checkPasscode = function () {
+    const input = document.getElementById("passcodeInput").value;
+    if (input === "LevoskyUTEPA129!") {
+      document.getElementById("protectedContent").style.display = "block";
+      document.getElementById("loginScreen").style.display = "none";
+      loadEntries();
+    } else {
+      alert("Incorrect passcode.");
+    }
   };
 
   window.addEventListener("keydown", function(e) {
