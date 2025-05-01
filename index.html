@@ -224,5 +224,51 @@
     }
   });
 </script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
+    authDomain: "packagelog-8a672.firebaseapp.com",
+    projectId: "packagelog-8a672",
+    storageBucket: "packagelog-8a672.appspot.com",
+    messagingSenderId: "424373386333",
+    appId: "1:424373386333:web:9827c71cafb9829d0fa1b4",
+    measurementId: "G-12P37M2SKV"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const pickupForm = document.getElementById("pickupForm");
+
+  pickupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const receipt = document.getElementById("receipt").value;
+    const pickedUpBy = document.getElementById("pickedUpBy").value;
+    const date = document.getElementById("date").value;
+    const sharepoint = document.getElementById("sharepoint").checked ? "Yes" : "No";
+    const minermall = document.getElementById("minermall").checked ? "Yes" : "No";
+    const enteredBy = document.getElementById("enteredBy").value;
+
+    try {
+      await addDoc(collection(db, "entries"), {
+        receipt,
+        pickedUpBy,
+        date,
+        sharepoint,
+        minermall,
+        enteredBy,
+        timestamp: new Date()
+      });
+      alert("Entry submitted successfully!");
+      pickupForm.reset();
+    } catch (err) {
+      alert("Error saving entry: " + err.message);
+    }
+  });
+</script>
 </body>
 </html>
