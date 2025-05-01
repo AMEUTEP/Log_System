@@ -13,100 +13,96 @@
     fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #FF8200; }
     legend { font-weight: bold; color: #00205B; }
     label { display: block; margin-top: 10px; }
-    input, button { padding: 8px; margin-top: 5px; width: 100%; box-sizing: border-box; }
-    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; }
+    input, button { padding: 8px; margin-top: 5px; box-sizing: border-box; }
+    input[type="text"], input[type="password"], input[type="date"] { width: 100%; }
+    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 8px 16px; margin-right: 10px; }
     button:hover { background: #cc6a00; }
     .danger { background: #e74c3c; }
     .danger:hover { background: #c0392b; }
     #spinner { font-style: italic; color: gray; margin: 10px 0; display: none; }
-    .filter-bar input { margin-right: 10px; padding: 5px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background: #00205B; color: white; }
     tr:nth-child(odd) { background: #f2f2f2; }
     .highlighted { background-color: #fff9c4 !important; }
-    #loginScreen { padding: 50px; max-width: 400px; margin: auto; }
+    #loginScreen { text-align: center; margin-top: 100px; }
   </style>
 </head>
-  
 <body>
-<div id="protectedContent" style="display: none;">
+
 <header>
   <h1>🚀 AME Package Pickup Log</h1>
   <span>Aerospace and Mechanical Engineering Dept</span>
 </header>
 
-<div class="container">
-  <div id="loginScreen">
-    <h2>Enter Passcode to Access</h2>
-    <input type="password" id="passcodeInput" placeholder="Enter passcode" />
-    <button onclick="checkPasscode()">Submit</button>
-    <p id="loginError" style="color: red;"></p>
-  </div>
+<div id="loginScreen">
+  <h2>Enter Passcode to Access</h2>
+  <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+  <br><br>
+  <button onclick="checkPasscode()">Submit</button>
+</div>
 
-  <div id="app" style="display:none;">
-    <form id="pickupForm">
-      <fieldset>
-        <legend>📄 Receipt Info</legend>
-        <label for="receiptNumber">Receipt Number:</label>
-        <input type="text" id="receiptNumber" required />
-      </fieldset>
-      <fieldset>
-        <legend>🧍 Pickup Details</legend>
-        <label for="pickupName">Name (Who Picked Up):</label>
-        <input type="text" id="pickupName" required />
-        <label for="pickupDate">Date of Pickup:</label>
-        <input type="date" id="pickupDate" required />
-      </fieldset>
-      <fieldset id="ameQuestion">
-        <legend>🏛️ Department Info</legend>
-        <label>Is the Package from AME Dept?</label>
-        <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
-        <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
-      </fieldset>
-      <fieldset id="dataChecklist" style="display:none;">
-        <legend>✅ Data Entry Checklist</legend>
-        <input type="checkbox" id="sharepoint"> <label for="sharepoint">SharePoint</label><br>
-        <input type="checkbox" id="minermall"> <label for="minermall">MinerMall</label><br>
-        <label for="enteredBy">Entered By:</label>
-        <input type="text" id="enteredBy" required />
-      </fieldset>
-      <fieldset id="poSection" style="display:none;">
-        <legend>📦 PO Number</legend>
-        <label for="poNumber">PO Number:</label>
-        <input type="text" id="poNumber" />
-      </fieldset>
-      <button type="submit">Submit Entry</button>
-      <button class="danger" type="button" onclick="confirmClear()">Clear All Entries</button>
-    </form>
+<div id="protectedContent" style="display: none;" class="container">
+  <form id="pickupForm">
+    <fieldset>
+      <legend>📄 Receipt Info</legend>
+      <label for="receiptNumber">Receipt Number:</label>
+      <input type="text" id="receiptNumber" required />
+    </fieldset>
+    <fieldset>
+      <legend>🧍 Pickup Details</legend>
+      <label for="pickupName">Name (Who Picked Up):</label>
+      <input type="text" id="pickupName" required />
+      <label for="pickupDate">Date of Pickup:</label>
+      <input type="date" id="pickupDate" required />
+    </fieldset>
+    <fieldset>
+      <legend>🏛️ Department Info</legend>
+      <label>Is the Package from AME Dept?</label><br>
+      <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label>
+      <label style="margin-left: 20px;"><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
+    </fieldset>
+    <fieldset id="dataChecklist" style="display:none;">
+      <legend>✅ Data Entry Checklist</legend>
+      <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
+      <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
+      <label for="enteredBy">Entered By:</label>
+      <input type="text" id="enteredBy" required />
+    </fieldset>
+    <fieldset id="poSection" style="display:none;">
+      <legend>📦 PO Number</legend>
+      <label for="poNumber">PO Number:</label>
+      <input type="text" id="poNumber" />
+    </fieldset>
+    <button type="submit">Submit Entry</button>
+    <button class="danger" type="button" onclick="confirmClear()">Clear All Entries</button>
+  </form>
 
-    <div class="filter-bar">
-      <h3>🔍 Filter Entries:</h3>
-      <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
-      <input type="text" id="filterName" placeholder="Filter by Name">
-      <input type="date" id="filterDate">
-      <button onclick="applyFilters()">Apply</button>
-      <button onclick="clearFilters()">Clear</button>
-    </div>
+  <h3>🔍 Filter Entries</h3>
+  <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
+  <input type="text" id="filterName" placeholder="Filter by Name">
+  <input type="date" id="filterDate">
+  <button onclick="applyFilters()">Apply</button>
+  <button onclick="clearFilters()">Clear</button>
 
-    <div id="spinner">Loading entries...</div>
-    <h2>📑 Saved Entries</h2>
-    <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
-    <table id="logTable">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Receipt #</th>
-          <th>Picked Up By</th>
-          <th>Date</th>
-          <th>SharePoint</th>
-          <th>MinerMall</th>
-          <th>Entered By</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <div id="spinner">Loading entries...</div>
+
+  <h2>📑 Saved Entries</h2>
+  <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Receipt #</th>
+        <th>Picked Up By</th>
+        <th>Date</th>
+        <th>SharePoint</th>
+        <th>MinerMall</th>
+        <th>Entered By</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 </div>
 
 <script type="module">
@@ -127,27 +123,20 @@
   const db = getFirestore(app);
   let allEntries = [];
 
-  window.checkPasscode = function () {
-    const input = document.getElementById("passcodeInput").value;
-    if (input === "LevoskyUTEPA129!") {
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      loadEntries();
-    } else {
-      document.getElementById("loginError").innerText = "Incorrect passcode.";
-    }
-  };
-
   window.toggleChecklist = function (show) {
     document.getElementById("dataChecklist").style.display = show ? "block" : "none";
   };
 
-  window.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
-      e.preventDefault();
-      checkPasscode();
+  window.checkPasscode = function () {
+    const input = document.getElementById("passcodeInput").value;
+    if (input === "LevoskyUTEPA129!") {
+      document.getElementById("protectedContent").style.display = "block";
+      document.getElementById("loginScreen").style.display = "none";
+      loadEntries();
+    } else {
+      alert("Incorrect passcode.");
     }
-  });
+  };
 
   function renderTable(entries) {
     const tableBody = document.querySelector("#logTable tbody");
@@ -226,18 +215,6 @@
     document.getElementById("filterDate").value = "";
     renderTable(allEntries);
   };
-
-function checkPasscode() {
-    const input = document.getElementById("passcodeInput").value;
-    if (input === "LevoskyUTEPA129!") {
-        document.getElementById("protectedContent").style.display = "block";
-        document.getElementById("passcodeGate").style.display = "none";
-    } else {
-        alert("Incorrect passcode.");
-      LevoskyUTEPA129!
-    }
-}
 </script>
-</div>
 </body>
 </html>
