@@ -14,9 +14,77 @@
   </style>
 </head>
 <body>
-  
+
 <p style="color: red;">If you can read this, HTML is loading!</p>
-<!-- ...[TRUNCATED HEAD + FORM CONTENT for brevity here; same as before] -->
+
+<div id="loginScreen">
+  <h2>Enter Passcode to Access Log System</h2>
+  <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+  <button onclick="checkPasscode()">Submit</button>
+  <p id="loginError" style="color: red;"></p>
+</div>
+
+<div id="app">
+  <h1>Package Pickup Log</h1>
+
+  <form id="pickupForm">
+    <fieldset>
+      <legend>Receipt Info</legend>
+      <label for="receiptNumber">Receipt Number:</label><br>
+      <input type="text" id="receiptNumber" required><br><br>
+    </fieldset>
+
+    <fieldset>
+      <legend>Pickup Details</legend>
+      <label for="pickupName">Name (Who Picked Up):</label><br>
+      <input type="text" id="pickupName" required><br><br>
+
+      <label for="pickupDate">Date of Pickup:</label><br>
+      <input type="date" id="pickupDate" required>
+    </fieldset>
+
+    <fieldset id="ameQuestion">
+      <legend>Department</legend>
+      <label>Is the Package from AME Dept?</label><br>
+      <input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes
+      <input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No
+    </fieldset>
+
+    <fieldset id="dataChecklist">
+      <legend>Data Entry Checklist</legend>
+      <input type="checkbox" id="sharepoint">
+      <label for="sharepoint">SharePoint</label><br>
+
+      <input type="checkbox" id="minermall">
+      <label for="minermall">MinerMall</label><br><br>
+
+      <label for="enteredBy">Entered By (Name):</label><br>
+      <input type="text" id="enteredBy" required>
+    </fieldset>
+
+    <fieldset id="poSection">
+      <legend>PO Number (Required for duplicates)</legend>
+      <label for="poNumber">PO Number:</label><br>
+      <input type="text" id="poNumber"><br><br>
+    </fieldset>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <h2>Saved Entries</h2>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th>Picked Up By</th>
+        <th>Date</th>
+        <th>SharePoint</th>
+        <th>MinerMall</th>
+        <th>Entered By</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -36,85 +104,86 @@
   const db = getFirestore(app);
   window.firebaseDB = db;
 
-  const form = document.getElementById("pickupForm");
-  const tableBody = document.querySelector("#logTable tbody");
-  let savedReceipts = [];
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("pickupForm");
+    const tableBody = document.querySelector("#logTable tbody");
+    let savedReceipts = [];
 
-  function toggleChecklist(show) {
-    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
-  }
-
-  function checkPasscode() {
-    const input = document.getElementById("passcodeInput").value;
-    if (input === "LevoskyUTEPA129!") {
-      document.getElementById("loginScreen").style.display = "none";
-      document.getElementById("app").style.display = "block";
-      document.getElementById("ameQuestion").style.display = "block";
-      loadEntries();
-    } else {
-      document.getElementById("loginError").innerText = "Incorrect passcode.";
-    }
-  }
-
-  window.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
-      e.preventDefault();
-      checkPasscode();
-    }
-  });
-
-  async function loadEntries() {
-    const db = window.firebaseDB;
-    tableBody.innerHTML = "";
-    savedReceipts = [];
-    const querySnapshot = await getDocs(collection(db, "entries"));
-    querySnapshot.forEach((doc) => {
-      const entry = doc.data();
-      savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
-      const row = tableBody.insertRow();
-      row.insertCell(0).innerText = entry.pickupName || '';
-      row.insertCell(1).innerText = entry.pickupDate || '';
-      row.insertCell(2).innerText = entry.sharepoint || '';
-      row.insertCell(3).innerText = entry.minermall || '';
-      row.insertCell(4).innerText = entry.enteredBy || '';
-    });
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const db = window.firebaseDB;
-    const receipt = document.getElementById("receiptNumber").value;
-    const po = document.getElementById("poNumber").value;
-    const combinedKey = receipt + po;
-
-    if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
-      if (!po) {
-        document.getElementById("poSection").style.display = "block";
-        alert("Duplicate Receipt Number detected. Please enter PO Number.");
-        return;
-      }
-    }
-
-    const entry = {
-      receiptNumber: receipt,
-      poNumber: po,
-      pickupName: document.getElementById("pickupName").value,
-      pickupDate: document.getElementById("pickupDate").value,
-      sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
-      minermall: document.getElementById("minermall").checked ? "Yes" : "No",
-      enteredBy: document.getElementById("enteredBy").value
+    window.toggleChecklist = function(show) {
+      document.getElementById("dataChecklist").style.display = show ? "block" : "none";
     };
 
-    try {
-      await addDoc(collection(db, "entries"), entry);
-      alert("Entry saved to Firebase!");
-      form.reset();
-      document.getElementById("poSection").style.display = "none";
-      loadEntries();
-    } catch (error) {
-      console.error("Error saving entry:", error);
-      alert("Error saving entry: " + error.message);
+    window.checkPasscode = function() {
+      const input = document.getElementById("passcodeInput").value;
+      if (input === "LevoskyUTEPA129!") {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+        document.getElementById("ameQuestion").style.display = "block";
+        loadEntries();
+      } else {
+        document.getElementById("loginError").innerText = "Incorrect passcode.";
+      }
+    };
+
+    window.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && document.getElementById("loginScreen").style.display !== "none") {
+        e.preventDefault();
+        window.checkPasscode();
+      }
+    });
+
+    async function loadEntries() {
+      tableBody.innerHTML = "";
+      savedReceipts = [];
+      const querySnapshot = await getDocs(collection(db, "entries"));
+      querySnapshot.forEach((doc) => {
+        const entry = doc.data();
+        savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
+        const row = tableBody.insertRow();
+        row.insertCell(0).innerText = entry.pickupName || '';
+        row.insertCell(1).innerText = entry.pickupDate || '';
+        row.insertCell(2).innerText = entry.sharepoint || '';
+        row.insertCell(3).innerText = entry.minermall || '';
+        row.insertCell(4).innerText = entry.enteredBy || '';
+      });
     }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const receipt = document.getElementById("receiptNumber").value;
+      const po = document.getElementById("poNumber").value;
+      const combinedKey = receipt + po;
+
+      if (savedReceipts.includes(combinedKey) || savedReceipts.includes(receipt)) {
+        if (!po) {
+          document.getElementById("poSection").style.display = "block";
+          alert("Duplicate Receipt Number detected. Please enter PO Number.");
+          return;
+        }
+      }
+
+      const entry = {
+        receiptNumber: receipt,
+        poNumber: po,
+        pickupName: document.getElementById("pickupName").value,
+        pickupDate: document.getElementById("pickupDate").value,
+        sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
+        minermall: document.getElementById("minermall").checked ? "Yes" : "No",
+        enteredBy: document.getElementById("enteredBy").value
+      };
+
+      try {
+        await addDoc(collection(db, "entries"), entry);
+        alert("Entry saved to Firebase!");
+        form.reset();
+        document.getElementById("poSection").style.display = "none";
+        loadEntries();
+      } catch (error) {
+        console.error("Error saving entry:", error);
+        alert("Error saving entry: " + error.message);
+      }
+    });
   });
 </script>
 </body>
