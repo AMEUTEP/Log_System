@@ -59,8 +59,9 @@
     <fieldset>
       <legend>🏛️ Department Info</legend>
       <label>Is the Package from AME Dept?</label><br>
-      <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label>
-      <label style="margin-left: 20px;"><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
+      <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
+      <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
+
     </fieldset>
     <fieldset id="dataChecklist" style="display:none;">
       <legend>✅ Data Entry Checklist</legend>
@@ -215,6 +216,13 @@
     document.getElementById("filterDate").value = "";
     renderTable(allEntries);
   };
+
+  window.addEventListener("keydown", function(e) {
+    if (document.getElementById("loginScreen").style.display !== "none" && e.key === "Enter") {
+      e.preventDefault();
+      checkPasscode();
+    }
+  });
 </script>
 </body>
 </html>
