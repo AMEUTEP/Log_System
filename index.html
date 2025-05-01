@@ -6,16 +6,16 @@
   <title>Package Pickup Log</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
-    #app, #poSection, #dataChecklist, #ameQuestion { display: none; }
+    #app, #poSection, #dataChecklist, #ameQuestion, #spinner { display: none; }
     fieldset { margin-bottom: 20px; padding: 10px; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
     th { background-color: #f4f4f4; }
+    #spinner { font-style: italic; color: gray; margin-bottom: 10px; }
+    .danger { background-color: #ffe6e6; border: 1px solid red; padding: 5px 10px; }
   </style>
 </head>
 <body>
-
-<p style="color: red;">If you can read this, HTML is loading!</p>
 
 <div id="loginScreen">
   <h2>Enter Passcode to Access Log System</h2>
@@ -71,6 +71,12 @@
     <button type="submit">Submit</button>
   </form>
 
+  <div style="margin-top: 20px;">
+    <button class="danger" onclick="confirmClear()">Clear All Entries</button>
+  </div>
+
+  <div id="spinner">Loading entries...</div>
+
   <h2>Saved Entries</h2>
   <table id="logTable">
     <thead>
@@ -88,7 +94,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
@@ -107,6 +113,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("pickupForm");
     const tableBody = document.querySelector("#logTable tbody");
+    const spinner = document.getElementById("spinner");
     let savedReceipts = [];
 
     window.toggleChecklist = function(show) {
@@ -133,11 +140,12 @@
     });
 
     async function loadEntries() {
+      spinner.style.display = "block";
       tableBody.innerHTML = "";
       savedReceipts = [];
-      const querySnapshot = await getDocs(collection(db, "entries"));
-      querySnapshot.forEach((doc) => {
-        const entry = doc.data();
+      const snapshot = await getDocs(collection(db, "entries"));
+      snapshot.forEach((docRef) => {
+        const entry = docRef.data();
         savedReceipts.push(entry.receiptNumber + (entry.poNumber || ""));
         const row = tableBody.insertRow();
         row.insertCell(0).innerText = entry.pickupName || '';
@@ -146,6 +154,7 @@
         row.insertCell(3).innerText = entry.minermall || '';
         row.insertCell(4).innerText = entry.enteredBy || '';
       });
+      spinner.style.display = "none";
     }
 
     form.addEventListener("submit", async (e) => {
@@ -184,6 +193,16 @@
         alert("Error saving entry: " + error.message);
       }
     });
+
+    window.confirmClear = async function() {
+      if (!confirm("Are you sure you want to delete ALL saved entries?")) return;
+      const snapshot = await getDocs(collection(db, "entries"));
+      for (const docRef of snapshot.docs) {
+        await deleteDoc(doc(db, "entries", docRef.id));
+      }
+      alert("All entries cleared.");
+      loadEntries();
+    };
   });
 </script>
 </body>
