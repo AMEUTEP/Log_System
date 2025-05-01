@@ -88,9 +88,15 @@
   <div id="spinner">Loading entries...</div>
 
   <h2>Saved Entries</h2>
+
+<p style="font-style: italic; color: gray; margin-top: 5px;">
+  Highlight if submitted in PeopleSoft.
+</p>
+
   <table id="logTable">
     <thead>
       <tr>
+        <th></th>
         <th>Picked Up By</th>
         <th>Date</th>
         <th>SharePoint</th>
@@ -172,6 +178,11 @@
       tableBody.innerHTML = "";
       for (const entry of entries) {
         const row = tableBody.insertRow();
+        const highlightCell = row.insertCell();
+        const highlightBtn = document.createElement("button");
+        highlightBtn.textContent = "Highlight";
+        highlightBtn.onclick = () => row.style.backgroundColor = row.style.backgroundColor === "lightyellow" ? "" : "lightyellow";
+        highlightCell.appendChild(highlightBtn);
         row.insertCell(0).innerText = entry.pickupName || '';
         row.insertCell(1).innerText = entry.pickupDate || '';
         row.insertCell(2).innerText = entry.sharepoint || '';
