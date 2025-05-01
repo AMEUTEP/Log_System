@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>AME Package Pickup Log</title>
+  <title>🚀 AME Package Pickup Log</title>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
     header { background: #00205B; color: white; padding: 20px; }
@@ -15,7 +15,7 @@
     label { display: block; margin-top: 10px; }
     input, button { padding: 8px; margin-top: 5px; box-sizing: border-box; }
     input[type="text"], input[type="password"], input[type="date"] { width: 100%; }
-    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 8px 16px; margin-right: 10px; }
+    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 6px 12px; margin-right: 8px; }
     button:hover { background: #cc6a00; }
     .danger { background: #e74c3c; }
     .danger:hover { background: #c0392b; }
@@ -26,12 +26,22 @@
     tr:nth-child(odd) { background: #f2f2f2; }
     .highlighted { background-color: #fff9c4 !important; }
     #loginScreen { text-align: center; margin-top: 100px; }
+    .rocket-icon {
+      width: 24px;
+      height: 24px;
+      vertical-align: middle;
+      margin-right: 8px;
+      transition: transform 0.3s ease;
+    }
+    .rocket-icon:hover {
+      transform: scale(1.2) rotate(-10deg);
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🚀 AME Package Pickup Log</h1>
+  <h1><img src="https://www.svgrepo.com/show/1320/rocket.svg" alt="Rocket" class="rocket-icon"> AME Package Pickup Log</h1>
   <span>Aerospace and Mechanical Engineering Dept</span>
 </header>
 
@@ -130,10 +140,8 @@
   let allEntries = [];
 
   async function loadEntries() {
-    const spinner = document.getElementById("spinner");
-    spinner.style.display = "block";
-    allEntries = [];
     const snapshot = await getDocs(collection(db, "entries"));
+    allEntries = [];
     const tableBody = document.querySelector("#logTable tbody");
     tableBody.innerHTML = "";
     snapshot.forEach(docSnap => {
@@ -147,7 +155,6 @@
       btn.textContent = "Highlight";
       btn.onclick = () => row.classList.toggle("highlighted");
       highlightCell.appendChild(btn);
-
       row.insertCell().innerText = entry.receiptNumber || '';
       row.insertCell().innerText = entry.pickupName || '';
       row.insertCell().innerText = entry.pickupDate || '';
@@ -156,27 +163,36 @@
       row.insertCell().innerText = entry.enteredBy || '';
 
       const attachmentCell = row.insertCell();
-      attachmentCell.innerHTML = `
-        <button onclick="uploadAttachment('${id}')">Upload</button>
-        <span id="link-${id}">${entry.attachmentURL ? `<a href='${entry.attachmentURL}' target='_blank'>View</a>` : ""}</span>
-      `;
+      const attachmentSpan = document.createElement("span");
+      attachmentSpan.id = `link-${id}`;
+      if (entry.attachmentURL) {
+        attachmentSpan.innerHTML = `<a href='${entry.attachmentURL}' target='_blank'>View</a>`;
+      }
+
+      const uploadBtn = document.createElement("button");
+      uploadBtn.textContent = "Upload";
+      uploadBtn.onclick = () => uploadAttachment(id);
+
+      attachmentCell.appendChild(uploadBtn);
+      attachmentCell.appendChild(attachmentSpan);
     });
-    spinner.style.display = "none";
   }
 
-  window.uploadAttachment = async (entryId) => {
+  async function uploadAttachment(entryId) {
     const fileInput = document.createElement("input");
     fileInput.type = "file";
     fileInput.onchange = async () => {
       const file = fileInput.files[0];
+      if (!file) return;
       const fileRef = ref(storage, `attachments/${entryId}/${file.name}`);
       await uploadBytes(fileRef, file);
       const downloadURL = await getDownloadURL(fileRef);
       await updateDoc(doc(db, "entries", entryId), { attachmentURL: downloadURL });
-      document.getElementById(`link-${entryId}`).innerHTML = `<a href='${downloadURL}' target='_blank'>View</a>`;
+      const link = document.getElementById(`link-${entryId}`);
+      link.innerHTML = `<a href='${downloadURL}' target='_blank'>View</a>`;
     };
     fileInput.click();
-  };
+  }
 
   document.getElementById("pickupForm").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -237,10 +253,18 @@
       row.insertCell().innerText = entry.minermall || '';
       row.insertCell().innerText = entry.enteredBy || '';
       const attachmentCell = row.insertCell();
-      attachmentCell.innerHTML = `
-        <button onclick="uploadAttachment('${entry.id}')">Upload</button>
-        <span id="link-${entry.id}">${entry.attachmentURL ? `<a href='${entry.attachmentURL}' target='_blank'>View</a>` : ""}</span>
-      `;
+      const attachmentSpan = document.createElement("span");
+      attachmentSpan.id = `link-${entry.id}`;
+      if (entry.attachmentURL) {
+        attachmentSpan.innerHTML = `<a href='${entry.attachmentURL}' target='_blank'>View</a>`;
+      }
+
+      const uploadBtn = document.createElement("button");
+      uploadBtn.textContent = "Upload";
+      uploadBtn.onclick = () => uploadAttachment(entry.id);
+
+      attachmentCell.appendChild(uploadBtn);
+      attachmentCell.appendChild(attachmentSpan);
     });
   }
 
