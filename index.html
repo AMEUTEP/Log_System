@@ -32,7 +32,7 @@
 <body>
 
 <header>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Emoji_u1f680.svg/1200px-Emoji_u1f680.svg.png" alt="Rocket Icon">
+  <img src="https://twemoji.maxcdn.com/v/latest/svg/1f680.svg" alt="Rocket Icon" />
   <div>
     <h1>AME Package Pickup Log</h1>
     <span>Aerospace and Mechanical Engineering Dept</span>
@@ -70,6 +70,9 @@
       <legend>✅ Data Entry Checklist</legend>
       <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
       <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
+    </fieldset>
+    <fieldset>
+      <legend>✍️ Entry Attribution</legend>
       <label for="enteredBy">Entered By:</label>
       <input type="text" id="enteredBy" name="enteredBy" required />
     </fieldset>
@@ -117,6 +120,13 @@
       alert("Incorrect passcode.");
     }
   }
+
+  window.addEventListener("keydown", function(e) {
+    if (document.getElementById("loginScreen").style.display !== "none" && e.key === "Enter") {
+      e.preventDefault();
+      checkPasscode();
+    }
+  });
 </script>
 
 </body>
