@@ -159,6 +159,34 @@ function toggleChecklist(show) {
   document.getElementById("dataChecklist").style.display = show ? "block" : "none";
 }
 
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("pickupForm");
+
+  form.addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const entry = {
+      receiptNumber: document.getElementById("receiptNumber").value,
+      pickupName: document.getElementById("pickupName").value,
+      pickupDate: document.getElementById("pickupDate").value,
+      sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
+      minermall: document.getElementById("minermall").checked ? "Yes" : "No",
+      enteredBy: document.getElementById("enteredBy").value
+    };
+
+    try {
+      await addDoc(collection(db, "entries"), entry);
+      alert("Entry saved!");
+      form.reset();
+      loadEntries();
+      toggleChecklist(false);
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
+  });
+});
+
 </script>
 
 </body>
