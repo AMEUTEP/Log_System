@@ -7,127 +7,53 @@
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
     header { background: #00205B; color: white; padding: 20px; display: flex; align-items: center; }
-    header h1 { margin: 0; font-size: 1.8em; }
-    header img { height: 30px; margin-right: 10px; }
-    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 10px; }
-    .container { padding: 20px; }
-    fieldset { background: #fff; margin-bottom: 20px; padding: 10px 15px; border: 1px solid #ccc; border-left: 4px solid #FF8200; }
-    legend { font-weight: bold; color: #00205B; }
-    label { display: block; margin-top: 10px; }
-    input, button { padding: 8px; margin-top: 5px; box-sizing: border-box; }
-    input[type="text"], input[type="password"], input[type="date"] { width: 100%; }
-    button { background: #FF8200; color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; padding: 8px 16px; margin-right: 10px; }
-    button:hover { background: #cc6a00; }
-    .danger { background: #e74c3c; }
-    .danger:hover { background: #c0392b; }
-    #spinner { font-style: italic; color: gray; margin: 10px 0; display: none; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #00205B; color: white; }
-    tr:nth-child(odd) { background: #f2f2f2; }
-    .highlighted { background-color: #fff9c4 !important; }
-    #loginScreen { text-align: center; margin-top: 100px; }
+    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; display: flex; align-items: center; }
+    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 38px; margin-top: 4px; }
   </style>
 </head>
 <body>
+  <header>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="30" height="30" style="vertical-align: middle; margin-right: 8px;">
+      <path fill="#FF8200" d="M32 2c-4 10-8 20-12 30l12 10 12-10C40 22 36 12 32 2z"/>
+      <circle cx="32" cy="48" r="4" fill="#00205B"/>
+    </svg>
+    <div>
+      <h1>AME Package Pickup Log</h1>
+      <span>Aerospace and Mechanical Engineering Dept</span>
+    </div>
+  </header>
 
-<header>
-  <img src="https://twemoji.maxcdn.com/v/latest/svg/1f680.svg" alt="Rocket Icon" />
-  <div>
-    <h1>AME Package Pickup Log</h1>
-    <span>Aerospace and Mechanical Engineering Dept</span>
-  </div>
-</header>
+  <main style="padding: 20px;">
+    <div id="loginScreen">
+      <h2>Enter Passcode to Access</h2>
+      <input type="password" id="passcodeInput" placeholder="Enter passcode" style="width: 250px;" />
+      <br><br>
+      <button onclick="checkPasscode()">Submit</button>
+    </div>
 
-<div id="loginScreen">
-  <h2>Enter Passcode to Access</h2>
-  <input type="password" id="passcodeInput" placeholder="Enter passcode" style="width: 250px;" />
-  <br><br>
-  <button onclick="checkPasscode()">Submit</button>
-</div>
+    <div id="protectedContent" style="display: none;">
+      <!-- Form and table will be injected here -->
+      <p>This is where your full entry form, Firebase integration, and entry table appear.</p>
+    </div>
+  </main>
 
-<div id="protectedContent" style="display: none;" class="container">
-  <form id="pickupForm">
-    <fieldset>
-      <legend>📄 Receipt Info</legend>
-      <label for="receiptNumber">Receipt Number:</label>
-      <input type="text" id="receiptNumber" required />
-    </fieldset>
-    <fieldset>
-      <legend>🧍 Pickup Details</legend>
-      <label for="pickupName">Name (Who Picked Up):</label>
-      <input type="text" id="pickupName" required />
-      <label for="pickupDate">Date of Pickup:</label>
-      <input type="date" id="pickupDate" required />
-    </fieldset>
-    <fieldset>
-      <legend>🏛️ Department Info</legend>
-      <label>Is the Package from AME Dept?</label><br>
-      <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
-      <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
-    </fieldset>
-    <fieldset id="dataChecklist" style="display:none;">
-      <legend>✅ Data Entry Checklist</legend>
-      <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
-      <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
-    </fieldset>
-    <fieldset>
-      <legend>✍️ Entry Attribution</legend>
-      <label for="enteredBy">Entered By:</label>
-      <input type="text" id="enteredBy" name="enteredBy" required />
-    </fieldset>
-    <button type="submit">Submit Entry</button>
-    <button class="danger" type="button" onclick="alert('Clear logic here')">Clear All Entries</button>
-  </form>
-
-  <h3>🔍 Filter Entries</h3>
-  <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
-  <input type="text" id="filterName" placeholder="Filter by Name">
-  <input type="date" id="filterDate">
-  <button onclick="alert('Filter logic here')">Apply</button>
-  <button onclick="alert('Clear filter logic')">Clear</button>
-
-  <div id="spinner">Loading entries...</div>
-
-  <h2>📑 Saved Entries</h2>
-  <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
-  <table id="logTable">
-    <thead>
-      <tr>
-        <th>Receipt #</th>
-        <th>Picked Up By</th>
-        <th>Date</th>
-        <th>SharePoint</th>
-        <th>MinerMall</th>
-        <th>Entered By</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-<script>
-  function toggleChecklist(show) {
-    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
-  }
-
-  function checkPasscode() {
-    const input = document.getElementById("passcodeInput").value;
-    if (input === "LevoskyUTEPA129!") {
-      document.getElementById("protectedContent").style.display = "block";
-      document.getElementById("loginScreen").style.display = "none";
-    } else {
-      alert("Incorrect passcode.");
+  <script>
+    function checkPasscode() {
+      const input = document.getElementById("passcodeInput").value;
+      if (input === "LevoskyUTEPA129!") {
+        document.getElementById("protectedContent").style.display = "block";
+        document.getElementById("loginScreen").style.display = "none";
+      } else {
+        alert("Incorrect passcode.");
+      }
     }
-  }
 
-  window.addEventListener("keydown", function(e) {
-    if (document.getElementById("loginScreen").style.display !== "none" && e.key === "Enter") {
-      e.preventDefault();
-      checkPasscode();
-    }
-  });
-</script>
-
+    window.addEventListener("keydown", function(e) {
+      if (document.getElementById("loginScreen").style.display !== "none" && e.key === "Enter") {
+        e.preventDefault();
+        checkPasscode();
+      }
+    });
+  </script>
 </body>
 </html>
