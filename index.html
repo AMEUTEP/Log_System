@@ -7,13 +7,15 @@
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
     header { background: #00205B; color: white; padding: 20px; display: flex; align-items: center; }
-    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; display: flex; align-items: center; }
+    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; }
     header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 10px; }
   </style>
 </head>
 <body>
   <header>
-    <span style="font-size: 1.8em; margin-right: 10px;">🚀</span>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Emoji_u1f680.svg/32px-Emoji_u1f680.svg.png"
+         alt="Rocket Icon"
+         style="height: 30px; margin-right: 10px;" />
     <div>
       <h1>AME Package Pickup Log</h1>
       <span>Aerospace and Mechanical Engineering Dept</span>
@@ -29,62 +31,65 @@
     </div>
 
     <div id="protectedContent" style="display: none;">
-      <form id="pickupForm">
-        <fieldset>
-          <legend>📄 Receipt Info</legend>
-          <label for="receiptNumber">Receipt Number:</label>
-          <input type="text" id="receiptNumber" required />
-        </fieldset>
-        <fieldset>
-          <legend>🧍 Pickup Details</legend>
-          <label for="pickupName">Name (Who Picked Up):</label>
-          <input type="text" id="pickupName" required />
-          <label for="pickupDate">Date of Pickup:</label>
-          <input type="date" id="pickupDate" required />
-        </fieldset>
-        <fieldset>
-          <legend>🏛️ Department Info</legend>
-          <label>Is the Package from AME Dept?</label><br>
-          <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
-          <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
-        </fieldset>
-        <fieldset id="dataChecklist" style="display:none;">
-          <legend>✅ Data Entry Checklist</legend>
-          <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
-          <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
-        </fieldset>
-        <fieldset>
-          <legend>✍️ Entry Attribution</legend>
-          <label for="enteredBy">Entered By:</label>
-          <input type="text" id="enteredBy" required />
-        </fieldset>
-        <button type="submit">Submit Entry</button>
-        <button class="danger" type="reset">Clear All Entries</button>
-      </form>
+      
+  <form id="pickupForm">
+    <fieldset>
+      <legend>📄 Receipt Info</legend>
+      <label for="receiptNumber">Receipt Number:</label>
+      <input type="text" id="receiptNumber" required />
+    </fieldset>
+    <fieldset>
+      <legend>🧍 Pickup Details</legend>
+      <label for="pickupName">Name (Who Picked Up):</label>
+      <input type="text" id="pickupName" required />
+      <label for="pickupDate">Date of Pickup:</label>
+      <input type="date" id="pickupDate" required />
+    </fieldset>
+    <fieldset>
+      <legend>🏛️ Department Info</legend>
+      <label>Is the Package from AME Dept?</label><br>
+      <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
+      <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
+    </fieldset>
+    <fieldset id="dataChecklist" style="display:none;">
+      <legend>✅ Data Entry Checklist</legend>
+      <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
+      <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
+    </fieldset>
+    <fieldset>
+      <legend>✍️ Entry Attribution</legend>
+      <label for="enteredBy">Entered By:</label>
+      <input type="text" id="enteredBy" required />
+    </fieldset>
+    <button type="submit">Submit Entry</button>
+    <button class="danger" type="reset">Clear All Entries</button>
+  </form>
 
-      <h3>🔍 Filter Entries</h3>
-      <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
-      <input type="text" id="filterName" placeholder="Filter by Name">
-      <input type="date" id="filterDate">
-      <button onclick="applyFilters()">Apply</button>
-      <button onclick="clearFilters()">Clear</button>
+  <h3>🔍 Filter Entries</h3>
+  <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
+  <input type="text" id="filterName" placeholder="Filter by Name">
+  <input type="date" id="filterDate">
+  <button onclick="applyFilters()">Apply</button>
+  <button onclick="clearFilters()">Clear</button>
 
-      <h2>📑 Saved Entries</h2>
-      <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
-      <table id="logTable">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Receipt #</th>
-            <th>Picked Up By</th>
-            <th>Date</th>
-            <th>SharePoint</th>
-            <th>MinerMall</th>
-            <th>Entered By</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+  <h2>📑 Saved Entries</h2>
+  <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
+  <table id="logTable">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Receipt #</th>
+        <th>Picked Up By</th>
+        <th>Date</th>
+        <th>SharePoint</th>
+        <th>MinerMall</th>
+        <th>Entered By</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  
+      <p>This is where your full log entry system will appear.</p>
     </div>
   </main>
 
@@ -108,51 +113,52 @@
         checkPasscode();
       }
     });
+  
+  function toggleChecklist(show) {
+    document.getElementById("dataChecklist").style.display = show ? "block" : "none";
+  }
 
-    function toggleChecklist(show) {
-      document.getElementById("dataChecklist").style.display = show ? "block" : "none";
-    }
+  document.getElementById("pickupForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const table = document.querySelector("#logTable tbody");
+    const row = table.insertRow();
+    const highlightCell = row.insertCell();
+    const highlightBtn = document.createElement("button");
+    highlightBtn.textContent = "Highlight";
+    highlightBtn.onclick = () => row.classList.toggle("highlighted");
+    highlightCell.appendChild(highlightBtn);
+    row.insertCell().textContent = document.getElementById("receiptNumber").value;
+    row.insertCell().textContent = document.getElementById("pickupName").value;
+    row.insertCell().textContent = document.getElementById("pickupDate").value;
+    row.insertCell().textContent = document.getElementById("sharepoint").checked ? "Yes" : "No";
+    row.insertCell().textContent = document.getElementById("minermall").checked ? "Yes" : "No";
+    row.insertCell().textContent = document.getElementById("enteredBy").value;
+    this.reset();
+    document.getElementById("dataChecklist").style.display = "none";
+  });
 
-    document.getElementById("pickupForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const table = document.querySelector("#logTable tbody");
-      const row = table.insertRow();
-      const highlightCell = row.insertCell();
-      const highlightBtn = document.createElement("button");
-      highlightBtn.textContent = "Highlight";
-      highlightBtn.onclick = () => row.classList.toggle("highlighted");
-      highlightCell.appendChild(highlightBtn);
-      row.insertCell().textContent = document.getElementById("receiptNumber").value;
-      row.insertCell().textContent = document.getElementById("pickupName").value;
-      row.insertCell().textContent = document.getElementById("pickupDate").value;
-      row.insertCell().textContent = document.getElementById("sharepoint").checked ? "Yes" : "No";
-      row.insertCell().textContent = document.getElementById("minermall").checked ? "Yes" : "No";
-      row.insertCell().textContent = document.getElementById("enteredBy").value;
-      this.reset();
-      document.getElementById("dataChecklist").style.display = "none";
+  function applyFilters() {
+    const receipt = document.getElementById("filterReceipt").value.toLowerCase();
+    const name = document.getElementById("filterName").value.toLowerCase();
+    const date = document.getElementById("filterDate").value;
+    const rows = document.querySelectorAll("#logTable tbody tr");
+    rows.forEach(row => {
+      const cells = row.getElementsByTagName("td");
+      const match =
+        cells[1].textContent.toLowerCase().includes(receipt) &&
+        cells[2].textContent.toLowerCase().includes(name) &&
+        cells[3].textContent.includes(date);
+      row.style.display = match ? "" : "none";
     });
+  }
 
-    function applyFilters() {
-      const receipt = document.getElementById("filterReceipt").value.toLowerCase();
-      const name = document.getElementById("filterName").value.toLowerCase();
-      const date = document.getElementById("filterDate").value;
-      const rows = document.querySelectorAll("#logTable tbody tr");
-      rows.forEach(row => {
-        const cells = row.getElementsByTagName("td");
-        const match =
-          cells[1].textContent.toLowerCase().includes(receipt) &&
-          cells[2].textContent.toLowerCase().includes(name) &&
-          cells[3].textContent.includes(date);
-        row.style.display = match ? "" : "none";
-      });
-    }
+  function clearFilters() {
+    document.getElementById("filterReceipt").value = "";
+    document.getElementById("filterName").value = "";
+    document.getElementById("filterDate").value = "";
+    document.querySelectorAll("#logTable tbody tr").forEach(row => row.style.display = "");
+  }
+</script>
 
-    function clearFilters() {
-      document.getElementById("filterReceipt").value = "";
-      document.getElementById("filterName").value = "";
-      document.getElementById("filterDate").value = "";
-      document.querySelectorAll("#logTable tbody tr").forEach(row => row.style.display = "");
-    }
-  </script>
 </body>
 </html>
