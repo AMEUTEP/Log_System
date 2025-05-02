@@ -140,14 +140,20 @@
     }
   }
 
-  window.addEventListener("keydown", function(e) {
-    const loginVisible = document.getElementById("loginScreen")?.style.display !== "none";
-    const focused = document.activeElement === document.getElementById("passcodeInput");
-    if (loginVisible && focused && e.key === "Enter") {
-      e.preventDefault();
-      checkPasscode();
-    }
-  });
+  
+window.addEventListener("keydown", function(e) {
+  const loginScreen = document.getElementById("loginScreen");
+  const passInput = document.getElementById("passcodeInput");
+
+  const loginVisible = loginScreen && loginScreen.style.display !== "none";
+  const focusedInPasscode = document.activeElement === passInput;
+
+  if (loginVisible && focusedInPasscode && e.key === "Enter") {
+    e.preventDefault();
+    checkPasscode();
+  }
+});
+
 
 function toggleChecklist(show) {
   document.getElementById("dataChecklist").style.display = show ? "block" : "none";
