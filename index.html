@@ -10,24 +10,21 @@
     header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; }
     header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 38px; margin-top: 4px; }
     header .logo { font-size: 2em; }
-
-    .passcode-card {
-      max-width: 300px;
+    .login-card {
+      max-width: 320px;
       margin: 100px auto;
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-left: 4px solid #FF8200;
+      border-left: 5px solid #FF8200;
+      text-align: center;
     }
-
-    .passcode-card h2 {
+    .login-card h2 {
       margin-top: 0;
       color: #00205B;
-      font-size: 1.2em;
     }
-
-    .passcode-card input[type="password"] {
+    .login-card input[type="password"] {
       width: 100%;
       padding: 8px;
       margin: 10px 0;
@@ -35,10 +32,9 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-
-    .passcode-card button {
+    .login-card button {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       background: #FF8200;
       color: white;
       border: none;
@@ -46,38 +42,55 @@
       font-weight: bold;
       cursor: pointer;
     }
-
-    .passcode-card button:hover {
+    .login-card button:hover {
       background: #cc6a00;
     }
   </style>
 </head>
 <body>
-  <header>
-    <span class="logo">🚀</span>
-    <div>
-      <h1>AME Package Pickup Log</h1>
-      <span>Aerospace and Mechanical Engineering Dept</span>
-    </div>
-  </header>
 
-  <div class="passcode-card">
-    <h2>🔒 AME Log Access</h2>
+<header>
+  <span class="logo">🚀</span>
+  <div>
+    <h1>AME Package Pickup Log</h1>
+    <span>Aerospace and Mechanical Engineering Dept</span>
+  </div>
+</header>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <h2>🔐 AME Log Access</h2>
     <p>Enter passcode to unlock:</p>
     <input type="password" id="passcodeInput" placeholder="Enter passcode" />
     <button onclick="checkPasscode()">Submit</button>
   </div>
+</div>
 
-  <script>
-    function checkPasscode() {
-      const pass = document.getElementById("passcodeInput").value;
-      if (pass === "LevoskyUTEPA129!") {
-        alert("Access granted!");
-        // Replace with proper access logic
-      } else {
-        alert("Incorrect passcode.");
-      }
+<div id="protectedContent" style="display: none; padding: 20px;">
+  <h2>Welcome to the AME Log System!</h2>
+  <p>This is where your full form and log system would appear after unlocking.</p>
+</div>
+
+<script>
+  function checkPasscode() {
+    const input = document.getElementById("passcodeInput").value.trim();
+    if (input === "LevoskyUTEPA129!") {
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("protectedContent").style.display = "block";
+    } else {
+      alert("Incorrect passcode.");
     }
-  </script>
+  }
+
+  window.addEventListener("keydown", function(e) {
+    const loginVisible = document.getElementById("loginScreen")?.style.display !== "none";
+    const focused = document.activeElement === document.getElementById("passcodeInput");
+    if (loginVisible && focused && e.key === "Enter") {
+      e.preventDefault();
+      checkPasscode();
+    }
+  });
+</script>
+
 </body>
 </html>
