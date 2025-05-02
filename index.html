@@ -7,16 +7,15 @@
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
     header { background: #00205B; color: white; padding: 20px; display: flex; align-items: center; }
-    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; display: flex; align-items: center; }
-    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 38px; margin-top: 4px; }
+    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; }
+    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 10px; }
   </style>
 </head>
 <body>
   <header>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="30" height="30" style="vertical-align: middle; margin-right: 8px;">
-      <path fill="#FF8200" d="M32 2c-4 10-8 20-12 30l12 10 12-10C40 22 36 12 32 2z"/>
-      <circle cx="32" cy="48" r="4" fill="#00205B"/>
-    </svg>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Emoji_u1f680.svg/32px-Emoji_u1f680.svg.png"
+         alt="Rocket Icon"
+         style="height: 30px; margin-right: 10px;" />
     <div>
       <h1>AME Package Pickup Log</h1>
       <span>Aerospace and Mechanical Engineering Dept</span>
@@ -32,8 +31,8 @@
     </div>
 
     <div id="protectedContent" style="display: none;">
-      <!-- Form and table will be injected here -->
-      <p>This is where your full entry form, Firebase integration, and entry table appear.</p>
+      <!-- Entry form and table would go here -->
+      <p>This is where your full log entry system will appear.</p>
     </div>
   </main>
 
@@ -49,7 +48,10 @@
     }
 
     window.addEventListener("keydown", function(e) {
-      if (document.getElementById("loginScreen").style.display !== "none" && e.key === "Enter") {
+      const loginVisible = document.getElementById("loginScreen").style.display !== "none";
+      const passcodeInputFocused = document.activeElement === document.getElementById("passcodeInput");
+
+      if (loginVisible && e.key === "Enter" && passcodeInputFocused) {
         e.preventDefault();
         checkPasscode();
       }
