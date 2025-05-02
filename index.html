@@ -4,243 +4,80 @@
 <head>
   <meta charset="UTF-8" />
   <title>🚀 AME Package Pickup Log</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCy8r9QFTE9d4ayBrCPj6-MRvoeVFZJgyc",
-      authDomain: "packagelog-8a672.firebaseapp.com",
-      projectId: "packagelog-8a672",
-      storageBucket: "packagelog-8a672.appspot.com",
-      messagingSenderId: "424373386333",
-      appId: "1:424373386333:web:9827c71cafb9829d0fa1b4",
-      measurementId: "G-12P37M2SKV"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    let allEntries = [];
-
-    window.toggleChecklist = function(show) {
-      document.getElementById("dataChecklist").style.display = show ? "block" : "none";
-    };
-
-    window.checkPasscode = function () {
-      const input = document.getElementById("passcodeInput").value;
-      if (input === "LevoskyUTEPA129!") {
-        document.getElementById("protectedContent").style.display = "block";
-        document.getElementById("loginScreen").style.display = "none";
-        loadEntries();
-      } else {
-        alert("Incorrect passcode.");
-      }
-    };
-
-    async function loadEntries() {
-      const spinner = document.getElementById("spinner");
-      spinner.style.display = "block";
-      allEntries = [];
-      const snapshot = await getDocs(collection(db, "entries"));
-      snapshot.forEach(doc => allEntries.push({ id: doc.id, ...doc.data() }));
-      renderTable(allEntries);
-      spinner.style.display = "none";
-    }
-
-    function renderTable(entries) {
-      const tableBody = document.querySelector("#logTable tbody");
-      tableBody.innerHTML = "";
-      entries.forEach(entry => {
-        const row = tableBody.insertRow();
-        const highlightCell = row.insertCell();
-        const btn = document.createElement("button");
-        btn.textContent = "Highlight";
-        btn.onclick = () => row.classList.toggle("highlighted");
-        highlightCell.appendChild(btn);
-        row.insertCell().innerText = entry.receiptNumber || '';
-        row.insertCell().innerText = entry.pickupName || '';
-        row.insertCell().innerText = entry.pickupDate || '';
-        row.insertCell().innerText = entry.sharepoint || '';
-        row.insertCell().innerText = entry.minermall || '';
-        row.insertCell().innerText = entry.enteredBy || '';
-      });
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("pickupForm").addEventListener("submit", async function (e) {
-        e.preventDefault();
-        const entry = {
-          receiptNumber: document.getElementById("receiptNumber").value,
-          pickupName: document.getElementById("pickupName").value,
-          pickupDate: document.getElementById("pickupDate").value,
-          sharepoint: document.getElementById("sharepoint").checked ? "Yes" : "No",
-          minermall: document.getElementById("minermall").checked ? "Yes" : "No",
-          enteredBy: document.getElementById("enteredBy").value
-        };
-        try {
-          await addDoc(collection(db, "entries"), entry);
-          alert("Entry saved!");
-          this.reset();
-          loadEntries();
-          toggleChecklist(false);
-        } catch (err) {
-          alert("Error: " + err.message);
-        }
-      });
-    });
-
-    window.confirmClear = async function () {
-      if (!confirm("Are you sure you want to delete ALL entries?")) return;
-      const snapshot = await getDocs(collection(db, "entries"));
-      for (const docRef of snapshot.docs) {
-        await deleteDoc(doc(db, "entries", docRef.id));
-      }
-      loadEntries();
-    };
-
-    window.applyFilters = function () {
-      const receipt = document.getElementById("filterReceipt").value.toLowerCase();
-      const name = document.getElementById("filterName").value.toLowerCase();
-      const date = document.getElementById("filterDate").value;
-      const filtered = allEntries.filter(entry =>
-        (entry.receiptNumber || '').toLowerCase().includes(receipt) &&
-        (entry.pickupName || '').toLowerCase().includes(name) &&
-        (entry.pickupDate || '').includes(date)
-      );
-      renderTable(filtered);
-    };
-
-    window.clearFilters = function () {
-      document.getElementById("filterReceipt").value = "";
-      document.getElementById("filterName").value = "";
-      document.getElementById("filterDate").value = "";
-      renderTable(allEntries);
-    };
-
-    window.addEventListener("keydown", function(e) {
-      const loginVisible = document.getElementById("loginScreen").style.display !== "none";
-      const focused = document.activeElement === document.getElementById("passcodeInput");
-      if (loginVisible && e.key === "Enter" && focused) {
-        e.preventDefault();
-        checkPasscode();
-      }
-    });
-  </script>
   <style>
     body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; }
     header { background: #00205B; color: white; padding: 20px; display: flex; align-items: center; }
-    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; display: flex; align-items: center; }
-    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 10px; }
-    input, button { padding: 8px; margin-top: 5px; box-sizing: border-box; }
-    button { background: #FF8200; color: white; border: none; border-radius: 3px; font-weight: bold; cursor: pointer; }
-    button:hover { background: #cc6a00; }
-    .danger { background: #e74c3c; }
-    .danger:hover { background: #c0392b; }
-    fieldset { background: #fff; padding: 15px; border-left: 4px solid #FF8200; margin-bottom: 20px; }
-    legend { color: #00205B; font-weight: bold; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background: #00205B; color: white; }
-    tr:nth-child(odd) { background: #f2f2f2; }
-    .highlighted { background: #fff9c4 !important; }
+    header h1 { margin: 0; font-size: 1.8em; margin-left: 10px; }
+    header span { font-size: 0.9em; font-weight: normal; display: block; margin-left: 38px; margin-top: 4px; }
+    header .logo { font-size: 2em; }
+
+    .passcode-card {
+      max-width: 300px;
+      margin: 100px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-left: 4px solid #FF8200;
+    }
+
+    .passcode-card h2 {
+      margin-top: 0;
+      color: #00205B;
+      font-size: 1.2em;
+    }
+
+    .passcode-card input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      margin: 10px 0;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    .passcode-card button {
+      width: 100%;
+      padding: 8px;
+      background: #FF8200;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .passcode-card button:hover {
+      background: #cc6a00;
+    }
   </style>
 </head>
 <body>
   <header>
-    <span style="font-size: 1.8em; margin-right: 10px;">🚀</span>
+    <span class="logo">🚀</span>
     <div>
       <h1>AME Package Pickup Log</h1>
       <span>Aerospace and Mechanical Engineering Dept</span>
     </div>
   </header>
 
-  <main style="padding: 20px;">
-    
-    
-    <div id="loginScreen" style="display: flex; justify-content: center; align-items: center; height: 80vh;">
-      <div style="background: white; border-radius: 8px; padding: 30px; width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-left: 5px solid #FF8200;">
-        <h2 style="color: #00205B; margin-top: 0;">🔐 AME Log Access</h2>
-        <p style="font-size: 0.9em;">Enter passcode to unlock:</p>
-        <input type="password" id="passcodeInput" placeholder="Enter passcode"
-               style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;" />
-        <br><br>
-        <button onclick="checkPasscode()" style="width: 100%;">Submit</button>
-      </div>
-    
-      <fieldset style="width: 300px; margin: auto; border: 2px solid #FF8200; padding: 20px;">
-        <legend style="color: #00205B; font-weight: bold;">🔐 Access Required</legend>
-        <p>Please enter the passcode to access the log system:</p>
-        <input type="password" id="passcodeInput" placeholder="Enter passcode" style="width: 100%; padding: 10px; margin-top: 10px;" />
-        <br><br>
-        <button onclick="checkPasscode()">Submit</button>
-      </fieldset>
-    
-      <h2>Enter Passcode to Access</h2>
-      <input type="password" id="passcodeInput" placeholder="Enter passcode" style="width: 250px;" />
-      <br><br>
-      <button onclick="checkPasscode()">Submit</button>
-    </div>
+  <div class="passcode-card">
+    <h2>🔒 AME Log Access</h2>
+    <p>Enter passcode to unlock:</p>
+    <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+    <button onclick="checkPasscode()">Submit</button>
+  </div>
 
-    <div id="protectedContent" style="display: none;">
-      <form id="pickupForm">
-        <fieldset>
-          <legend>📄 Receipt Info</legend>
-          <label for="receiptNumber">Receipt Number:</label>
-          <input type="text" id="receiptNumber" required />
-        </fieldset>
-        <fieldset>
-          <legend>🧍 Pickup Details</legend>
-          <label for="pickupName">Name (Who Picked Up):</label>
-          <input type="text" id="pickupName" required />
-          <label for="pickupDate">Date of Pickup:</label>
-          <input type="date" id="pickupDate" required />
-        </fieldset>
-        <fieldset>
-          <legend>🏛️ Department Info</legend>
-          <label>Is the Package from AME Dept?</label><br>
-          <label><input type="radio" name="ameDept" value="yes" onchange="toggleChecklist(true)"> Yes</label><br>
-          <label><input type="radio" name="ameDept" value="no" onchange="toggleChecklist(false)"> No</label>
-        </fieldset>
-        <fieldset id="dataChecklist" style="display:none;">
-          <legend>✅ Data Entry Checklist</legend>
-          <input type="checkbox" id="sharepoint"><label for="sharepoint"> SharePoint</label><br>
-          <input type="checkbox" id="minermall"><label for="minermall"> MinerMall</label><br>
-        </fieldset>
-        <fieldset>
-          <legend>✍️ Entry Attribution</legend>
-          <label for="enteredBy">Entered By:</label>
-          <input type="text" id="enteredBy" required />
-        </fieldset>
-        <button type="submit">Submit Entry</button>
-        <button class="danger" type="button" onclick="confirmClear()">Clear All Entries</button>
-      </form>
-
-      <h3>🔍 Filter Entries</h3>
-      <input type="text" id="filterReceipt" placeholder="Filter by Receipt #">
-      <input type="text" id="filterName" placeholder="Filter by Name">
-      <input type="date" id="filterDate">
-      <button onclick="applyFilters()">Apply</button>
-      <button onclick="clearFilters()">Clear</button>
-
-      <div id="spinner" style="font-style: italic; color: gray;">Loading entries...</div>
-
-      <h2>📑 Saved Entries</h2>
-      <p style="font-style: italic; color: gray;">Highlight if submitted in PeopleSoft.</p>
-      <table id="logTable">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Receipt #</th>
-            <th>Picked Up By</th>
-            <th>Date</th>
-            <th>SharePoint</th>
-            <th>MinerMall</th>
-            <th>Entered By</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-  </main>
+  <script>
+    function checkPasscode() {
+      const pass = document.getElementById("passcodeInput").value;
+      if (pass === "LevoskyUTEPA129!") {
+        alert("Access granted!");
+        // Replace with proper access logic
+      } else {
+        alert("Incorrect passcode.");
+      }
+    }
+  </script>
 </body>
 </html>
